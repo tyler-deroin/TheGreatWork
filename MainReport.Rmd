@@ -1,0 +1,31 @@
+---
+title: "Main Report"
+author: "Tyler Deroin"
+date: "September 26, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This is Team M's main report.
+
+## Main Points
+
+Lay out our main points
+
+Point 1
+etc.
+
+
+## Findings and Overall Analysis
+
+Our findings will go here
+
+```{r Findings}
+
+```
+
