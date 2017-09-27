@@ -1,2 +1,6 @@
 # TheGreatWork
-The terrorism data analysis created by the best BA team ever
+
+# Authors
+# Tyler Deroin  - tderoin
+
+Census and Marriage Status Analysis
