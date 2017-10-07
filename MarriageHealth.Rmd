@@ -1,0 +1,34 @@
+---
+title: "HealthMarriage"
+output: html_document
+author: "Rongkai Sha"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Load Data
+
+```{r echo = FALSE}
+filtered_data <- read_csv("C:/Users/kk/Desktop/GroupProject/filtered_data.csv")
+library(dplyr)
+library(ggplot2)
+mine <- select(fd, X1, disability, marstat, binary_marstat)
+mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
+mine$binary_marstat <- factor(mine$binary_marstat, levels = c(0,1), labels = c("married", "divorced"))
+```
+
+Disability Univariate Analysis
+```{r}
+ggplot(mine,aes(disability))+geom_histogram(stat = "count")
+```
+
+Bivariate Analysis
+```{r}
+cor.test(fd$binary_marstat,fd$disability)
+ggplot(mine, aes(disability, fill =binary_marstat))+geom_histogram(stat= "count", position = "dodge")
+```
+
