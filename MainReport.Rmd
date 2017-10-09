@@ -1,6 +1,6 @@
 ---
 title: "Main Report"
-author: "Tyler Deroin"
+author: "Team M"
 date: "September 26, 2017"
 output: pdf_document
 ---
@@ -9,19 +9,90 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction
+# Introduction
 
-This is Team M's main report.
+Marriage is such a big topic in human life and always a very strong predictor of people's life satisfaction and happiness level. However, not all marriages are eternal happy endings and a lot of them nowadays end in divorce. If we can understand the factors that influence the quality of marriage, we may be able to discover more preventive measures to help more people maintain a lifelong happy marriage.
 
-## Main Points
+To answer this question, our group examined the 2011 UK Census data and limited our scope to the marital status of a sample of British people. 
 
-Lay out our main points
+through descriptive and inferential statistics
 
-Point 1
-etc.
+To clarify, we define divorce rate here as (total number of divorce or separated)/(total number of marriage). Thus, we exclude all people who have not yet married, and the people who end their marriages out of other reasons such as the other partner's death.  
 
 
-## Findings and Overall Analysis
+
+## Description
+The dataset we examined is the 5% sample data of the 2011 UK Census. It contains 2,848,155 observations and 121 variables. Each observation represents a UK citizen
+Since the dataset is very large and there are too many variables, we decided to exclusively focus on the relationship between marital status (marstat) and other variables. In brief, we would like to examine the factors that may influence people's marriage and lead to higher divorce rate. Therefore, we selected a total of 17 variables that may be highly correlated with marital status.
+
+
+We can attach a table of all variables we examined here:
+
+
+# Methods 
+a really brief description of the R packages we used. We can load all our libraries in this page:
+```{r result = "hide", message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(stargazer)
+library(readr)
+```
+
+
+# Descriptive Statistics and Correlation Tests
+Simple descriptive statistis including bar charts, pie charts, density graph... etc. 
+We can show a few correlation tests, chi-squre tests and graphs
+
+## Social and Economic Status & Marriage 
+
+
+
+## Religion and Culture & Marriage
+
+
+
+## Age & Marriage
+
+
+
+## Region/Geography & Marriage
+
+
+
+
+
+## Health & Marriage
+```{r message = FALSE, warning = FALSE, echo = FALSE}
+filtered_data <- read_csv("C:/Users/kk/Desktop/GroupProject/filtered_data.csv")
+fd <- filtered_data
+mine <- select(fd, X1, disability, marstat, binary_marstat)
+mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
+mine$binary_marstat <- factor(mine$binary_marstat, levels = c(0,1), labels = c("married", "divorced"))
+chisq.test(mine$binary_marstat,mine$disability)
+```
+A chi-square test of the two variables indicate that the correlation between marital status and long-term health problem is significant. This finding suggests that the two variables are not independent of each other. Long-term health problem will influence marital status. 
+
+```{r echo = FALSE}
+mine2 <- select(fd, X1, disability, marstat, binary_marstat)
+mine2$disability <- factor(mine2$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
+mine2 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat))
+ggplot(mine, aes(disability, fill =binary_marstat))+geom_bar(position = "fill")
+ggplot(mine2, aes(disability, divorce_rate))+geom_bar(stat = "identity")
+```
+The graph shows that the less severe the long-term health problem, the less the divorced rate.
+
+
+
+# Logistic Regression
+A comprehensive regression analysis of all correlated variables
+
+
+
+# Hypothesis Testing and Prediction Model (Helene's)
+
+
+
+# Conclusion
 
 Our findings will go here
 
@@ -29,3 +100,8 @@ Our findings will go here
 
 ```
 
+# References
+
+
+# Apendix
+A list of all variables and descriptions
