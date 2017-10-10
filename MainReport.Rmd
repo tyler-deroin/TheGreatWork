@@ -63,7 +63,11 @@ We can show a few correlation tests, chi-squre tests and graphs
 
 ## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
+
+#This should be made universal and not distinct to any one local machine
 filtered_data <- read_csv("C:/Users/kk/Desktop/GroupProject/filtered_data.csv")
+
+
 fd <- filtered_data
 mine <- select(fd, X1, disability, marstat, binary_marstat)
 mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
@@ -102,6 +106,7 @@ Our findings will go here
 
 # References
 
+Main Github Repository: https://github.com/dlouhasha/TheGreatWork
 
-# Apendix
+# Appendix
 A list of all variables and descriptions
