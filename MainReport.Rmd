@@ -102,6 +102,7 @@ Our findings will go here
 
 # References
 
+Main Github Repository: https://github.com/dlouhasha/TheGreatWork
 
-# Apendix
+# Appendix
 A list of all variables and descriptions
