@@ -274,8 +274,6 @@ region1 %>% select(marstat, transport, wpzhome)%>% filter(!is.na(wpzhome)) %>% g
 
 
 
-
-
 ## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
 
