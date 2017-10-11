@@ -218,12 +218,9 @@ fulldata %>% dplyr::select(region, marstat, tenure) %>% filter(marstat != 'Singl
 ### Dependent childre and tenure
 
 ```{r}
+family_compo <- fd%>% select(dpcfamuk11, tenure, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
-family_compo <- fulldata %>% select(dpcfamuk11, tenure, marstat, region) %>% filter(marstat != 'Single' & marstat != 'Widowed')%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
-
-
-family_compo %>% dplyr::select(children_class, tenure, marstat)%>% filter(marstat != 'Single' & marstat != 'Widowed') %>%group_by(children_class, tenure) %>% summarise(count = n())%>%
-  ungroup() %>% group_by(children_class)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = children_class, y = prop, fill= tenure))+ geom_col(position = 'dodge') +theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Tenure by dependent children')
+family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class) %>% filter(!is.na(children_class))%>% group_by(tenure, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate, fill = tenure))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
 ```
 
