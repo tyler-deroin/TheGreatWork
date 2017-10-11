@@ -54,10 +54,11 @@ fd[, 'region'] <- factor(fd[,'region'], levels = c(1, 2, 3, 4, 5, 6, 7,
 fd <- fd %>% mutate('binary_region_num' = ifelse(region == 'Inner London', 1, 0)) %>% mutate( 'binary_region_factor' = ifelse(region == 'Inner London', "Inner London", "Outside London"))
 
 
-fdata[,'marstat'] <- factor(fdata[,'marstat'], level = c(1,2,3,4,5,6), 
+fd[,'marstat'] <- factor(fd[,'marstat'], level = c(1,2,3,4,5,6), 
                            labels = c('Single', 'Married', 'Same-sex', 'Separated', 
                                       'Divorced', 'Widowed'))
 
+fd <- mutate(fd, 'binary_marstat' = ifelse(marstat == "Separated" | marstat == 'Divorced', 1, 0))
 
 fd[,'transport']<- factor(fd[,'transport'], levels = c(1, 2, 3, 4, 5, 6, 7,
                                                            8, 9, 10, 11), 
@@ -185,12 +186,8 @@ fdata %>% dplyr::select(region, marstat, hours) %>% group_by(region, hours) %>% 
 ```
 
 
-# Type of dweling and region and marital status
-We continue to explore other variables in our list and see if we could find any pattern. 
-
-## Type of dwelling and region
-
-When we compare the types of dwelling across regions, inner London has the highest percentage of people staying in rented property. 
+### Type of dweling and region and marital status
+We continue to explore other variables in our list and see if we could find any pattern. When we compare the types of dwelling across regions, inner London has the highest percentage of people staying in rented property. 
 ```{r}
 
 region1 %>% select(binary_marstat, region, Highest_qualification, binary_region_factor) %>% filter(!is.na(Highest_qualification), !(Highest_qualification == 'Others'))%>% group_by(Highest_qualification, binary_region_factor)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = Highest_qualification, y = divorce_rate, fill = binary_region_factor))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
@@ -200,7 +197,6 @@ fd %>% dplyr::select(region, marstat, tenure) %>% filter(marstat != 'Single' & m
 
 ```
 
-### Type of dwelling and marital status
 
 We next look at the marital status of people staying in different types of dwelling. Not surprisingly separated and divorced people stay in rented property, whereas people marriage often opt to own a house either by outright ownership or mortgage. 
 
@@ -219,17 +215,7 @@ fulldata %>% dplyr::select(region, marstat, tenure) %>% filter(marstat != 'Singl
   ungroup() %>% group_by(region, marstat)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = tenure, y = prop, fill = tenure))+ geom_col() + scale_fill_manual(values = c('gray50', 'gray50','gray50', 'red','gray50','gray50')) + facet_grid(marstat~region)+theme(axis.text.x = element_blank()) + labs(title = 'Tenure by marital status')
 ```
 
-
-## To further find out if types of dwelling affects the marital status, we look at London data alone
-
-```{r}
-London_rent <- fulldata %>% select(region, tenure, marstat, Highest_qualification) filter(fulldata, region == 'Inner London' & tenure == 'Rents')
-
-
-```
-
-
-# Dependent childre and tenure
+### Dependent childre and tenure
 
 ```{r}
 
@@ -240,6 +226,53 @@ family_compo %>% dplyr::select(children_class, tenure, marstat)%>% filter(marsta
   ungroup() %>% group_by(children_class)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = children_class, y = prop, fill= tenure))+ geom_col(position = 'dodge') +theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Tenure by dependent children')
 
 ```
+
+## Transport and marital status
+Other than types of dwelling, we want to further analyse how people commute to work. As reports have shown that the longer it takes for people to get to work, the lower the happiness level. 
+
+As we do not have data on the duration of daily commute from home to work, but we have means of transport and distance of home from work to simulate that. 
+
+We first look at the percentage of bad marriage among total married and previously married people across different means of commute. We find that bus shows a higher divorce rate. 
+
+### Divorce rate by transport
+```{r}
+transport_count<- region1 %>% select(marstat, transport) %>% filter(!is.na(transport))%>% group_by(transport, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count)
+
+transport_count%>% mutate(divorce_rate = (Divorced + Separated)/(Divorced + Married + Separated))%>% ggplot(aes(x = transport, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+```
+
+To further test our hypothesis that means of commute influence marital status, we run a chi-squared test. We get a p-value below 5% so we can conclude that it does have impact to some extent. 
+
+Chi-squared test
+```{r}
+transport_test <- transport_count[,-1]
+rownames <- as.data.frame(transport_count)[,1]
+rownames(transport_test) <- as.data.frame(transport_count)[,1]
+chi_transport <- chisq.test(as.data.frame(transport_test))
+chi_transport
+#round(chi_region$residuals, 3)
+
+```
+
+
+### Divorce rate by transport per distance to work
+
+Means of transport alone does not tell us much, but combined with distance from home to work it could provide some insights. We find the divorce_rate for each commute methods by distance to work. We plot two graphs one is with transport on the x-axis, the other with distance to work on x-axis. 
+There is a slight increase in divorce rate as the distance to work increases across all means of transport. When we compare the different means of transport for the same distance to work, there are more divorced and separated couples who are travelling by bus. 
+
+
+```{r}
+# x: transport, wrap by distance to work
+region1 %>% select(marstat, transport, wpzhome)%>% filter(!is.na(wpzhome)) %>% group_by(wpzhome, transport, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count) %>% mutate(divorce_rate = (Divorced + Separated)/(Divorced + Married + Separated))%>% ggplot(aes(x = transport, y = divorce_rate))+ geom_col() + facet_wrap(~wpzhome)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+# x: distrance to work, wrap by transport 
+region1 %>% select(marstat, transport, wpzhome)%>% filter(!is.na(wpzhome)) %>% group_by(wpzhome, transport, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count) %>% mutate(divorce_rate = (Divorced + Separated)/(Divorced + Married + Separated))%>% ggplot(aes(x = wpzhome, y = divorce_rate))+ geom_col() + facet_wrap(~transport)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+```
+
+
+
 
 
 
