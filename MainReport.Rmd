@@ -1,7 +1,7 @@
 ---
-title: "Main Report"
+title: "Divorce Rate in 2011 United Kingdom"
 author: "Team M"
-date: "September 26, 2017"
+date: "October 11, 2017"
 output: pdf_document
 ---
 
@@ -48,11 +48,10 @@ filtered_data <- read.csv(textConnection(filtered_data))
 fd <- filtered_data
 fd <- as.data.frame(fd)
 
-fd <- fd %>% mutate(binary_marstat = ifelse(marstat == 2 | marstat == 3, 1, 0))
 ```
 
 
-```{r, echo = FALSE, eval=FALSE}
+```{r, echo = FALSE, eval=TRUE}
 # changing the factor names 
 
 fd[, 'region'] <- factor(fd[,'region'], levels = c(1, 2, 3, 4, 5, 6, 7,
@@ -69,7 +68,7 @@ fd[,'marstat'] <- factor(fd[,'marstat'], level = c(1,2,3,4,5,6),
                            labels = c('Single', 'Married', 'Same-sex', 'Separated', 
                                       'Divorced', 'Widowed'))
 
-fd <- mutate(fd, 'binary_marstat' = ifelse(marstat == "Separated" | marstat == 'Divorced', 1, 0))
+fd <- mutate(fd, binary_marstat = ifelse(marstat == "Separated" | marstat == 'Divorced', 1, 0))
 
 fd[,'transport']<- factor(fd[,'transport'], levels = c(1, 2, 3, 4, 5, 6, 7,
                                                            8, 9, 10, 11), 
@@ -155,18 +154,18 @@ We further perform t-test to compare the divorce rate of Inner London and all th
 
 ```{r}
 #mean_London <- fdata$binary_marstat[fdata$region == "Inner London"]
-outside_london <- fdata$binary_marstat[fdata$region != "Inner London"]
-t.test(fdata$binary_marstat, fdata$binary_marstat[fdata$region == "Inner London"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "North East"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "North West"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "Yorkshire and the Humber"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "East Midlands"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "West Midlands"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "East of England"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "Outer London"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "South East"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "South West"])
-t.test(outside_london, fdata$binary_marstat[fdata$region == "Wales"])
+outside_london <- fd$binary_marstat[fd$region != "Inner London"]
+t.test(fd$binary_marstat, fd$binary_marstat[fd$region == "Inner London"])
+t.test(outside_london, fd$binary_marstat[fd$region == "North East"])
+t.test(outside_london, fd$binary_marstat[fd$region == "North West"])
+t.test(outside_london, fd$binary_marstat[fd$region == "Yorkshire and the Humber"])
+t.test(outside_london, fd$binary_marstat[fd$region == "East Midlands"])
+t.test(outside_london, fd$binary_marstat[fd$region == "West Midlands"])
+t.test(outside_london, fd$binary_marstat[fd$region == "East of England"])
+t.test(outside_london, fd$binary_marstat[fd$region == "Outer London"])
+t.test(outside_london, fd$binary_marstat[fd$region == "South East"])
+t.test(outside_london, fd$binary_marstat[fd$region == "South West"])
+t.test(outside_london, fd$binary_marstat[fd$region == "Wales"])
 
 ```
 
@@ -192,7 +191,7 @@ region1 %>% select(binary_marstat, region, Highest_qualification, binary_region_
 We moved on to explore hours worked and region, but do not find any apparent relationships as the number of hours worked across all regions seem to be even. 
 
 ```{r, eval = FALSE, echo = FALSE}
-fdata %>% dplyr::select(region, marstat, hours) %>% group_by(region, hours) %>% summarise(count = n())%>%
+fdata <- dplyr::select(region, marstat, hours) %>% group_by(region, hours) %>% summarise(count = n())%>%
   ungroup() %>% group_by(region)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = hours, y = prop))+ geom_col() + facet_wrap(~region)+theme(axis.text.x = element_text(angle = 30, hjust = 1)) + labs(title = 'Hours worked by region')
 ```
 
@@ -211,20 +210,10 @@ fd %>% dplyr::select(region, marstat, tenure) %>% filter(marstat != 'Single' & m
 
 We next look at the marital status of people staying in different types of dwelling. Not surprisingly separated and divorced people stay in rented property, whereas people marriage often opt to own a house either by outright ownership or mortgage. 
 
-```{r}
-fulldata %>% dplyr::select(marstat, tenure) %>% filter(marstat != 'Single' & marstat != 'Widowed')%>%group_by(marstat, tenure) %>% summarise(count = n())%>%
-  ungroup() %>% group_by(marstat)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = tenure, y = prop))+ geom_col() + facet_wrap(~marstat)+theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Tenure by marital status')
-
-```
 Next we want to look at the marital status, types of dwelling and region. We find the proportion of people in each types of dwelling upon total population in each marital status within each region. We observe that in London a majority of people staying in rented properties regardless of their marital status, but even more so among separated and divorced people. On the other hand, most people in marriage opt to stay in owned property in other regions, even among the divorced and separated couples. 
 
 However we can't imply that there is a causal relationship. 
 
-
-```{r}
-fulldata %>% dplyr::select(region, marstat, tenure) %>% filter(marstat != 'Single' & marstat != 'Widowed')%>%group_by(region, marstat, tenure) %>% summarise(count = n())%>%
-  ungroup() %>% group_by(region, marstat)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = tenure, y = prop, fill = tenure))+ geom_col() + scale_fill_manual(values = c('gray50', 'gray50','gray50', 'red','gray50','gray50')) + facet_grid(marstat~region)+theme(axis.text.x = element_blank()) + labs(title = 'Tenure by marital status')
-```
 
 ### Dependent childre and tenure
 
@@ -285,7 +274,7 @@ region1 %>% select(marstat, transport, wpzhome)%>% filter(!is.na(wpzhome)) %>% g
 ## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
 
-mine <- select(fd, X1, disability, marstat, binary_marstat)
+mine <- select(fd, disability, marstat, binary_marstat)
 mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
 mine$binary_marstat <- factor(mine$binary_marstat, levels = c(0,1), labels = c("married", "divorced"))
 chisq.test(mine$binary_marstat,mine$disability)
@@ -293,7 +282,7 @@ chisq.test(mine$binary_marstat,mine$disability)
 A chi-square test of the two variables indicate that the correlation between marital status and long-term health problem is significant. This finding suggests that the two variables are not independent of each other. Long-term health problem will influence marital status. 
 
 ```{r echo = FALSE}
-mine2 <- select(fd, X1, disability, marstat, binary_marstat)
+mine2 <- select(fd, disability, marstat, binary_marstat)
 mine2$disability <- factor(mine2$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
 mine2 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat))
 ggplot(mine, aes(disability, fill =binary_marstat))+geom_bar(position = "fill")
