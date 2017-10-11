@@ -38,6 +38,17 @@ library(stargazer)
 library(readr)
 library(RCurl)
 library(foreign)
+
+
+# Load data
+url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+filtered_data <- getURL(url)
+filtered_data <- read.csv(textConnection(filtered_data))
+
+fd <- filtered_data
+fd <- as.data.frame(fd)
+
+fd <- fd %>% mutate(binary_marstat = ifelse(marstat == 2 | marstat == 3, 1, 0))
 ```
 
 
@@ -116,7 +127,7 @@ We use the data to plot a mosaic plot which essentially represents the residual 
 
 ```{r}
 # select the data relevant for region
-region1 <- dplyr::select(fd, binary_marstat, age, aggdtwpew11g, region, marstat, transport, wpzhome, Highest_qualification, binary_region_factor, binary_region_num,hours, tenure)
+region1 <- fd %>% select(binary_marstat, age, aggdtwpew11g, region, marstat, transport, wpzhome, Highest_qualification, binary_region_factor, binary_region_num,hours, tenure)
 
 #explore marital status with region
 region_count<- region1 %>% select(marstat, region) %>% group_by(region, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count)
@@ -274,13 +285,6 @@ region1 %>% select(marstat, transport, wpzhome)%>% filter(!is.na(wpzhome)) %>% g
 ## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
 
-#This should be made universal and not distinct to any one local machine
-
-url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
-filtered_data <- getURL(url)
-#filtered_data <- read.csv(textConnection(filtered_data))
-
-fd <- filtered_data
 mine <- select(fd, X1, disability, marstat, binary_marstat)
 mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
 mine$binary_marstat <- factor(mine$binary_marstat, levels = c(0,1), labels = c("married", "divorced"))
