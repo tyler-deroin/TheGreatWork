@@ -40,9 +40,10 @@ Since the chi-squre test is significant, we can conclude that the two variables 
 
 mine2 <- select(fd, X1, disability, marstat, binary_marstat)
 mine2$disability <- factor(mine2$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
-mine2 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat))
-
+mine2 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat, na.rm = TRUE))
+mine2 <- mine2[complete.cases(mine2),]
 ggplot(mine2, aes(disability, divorce_rate))+geom_bar(stat = "identity")
+mine2
 
 ```
 
