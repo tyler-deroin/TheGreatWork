@@ -22,8 +22,8 @@ To clarify, we define divorce rate here as (total number of divorce or separated
 
 
 ## Description
-The dataset we examined is the 5% sample data of the 2011 UK Census. It contains 2,848,155 observations and 121 variables. Each observation represents a UK citizen
-Since the dataset is very large and there are too many variables, we decided to exclusively focus on the relationship between marital status (marstat) and other variables. In brief, we would like to examine the factors that may influence people's marriage and lead to higher divorce rate. Therefore, we selected a total of 17 variables that may be highly correlated with marital status.
+The dataset we examined is the 5% sample data of the 2011 UK Census. It contains 2,848,155 observations and 121 variables. Each observation represents a UK citizen and their reported characteristics about themselves and their life.
+In order to focus more on marriages and what factors lead towards separation and divorce, we decided to exclusively focus on the relationship between marital status (marstat) and what we believed are indpendent variables.  Therefore, we began by removing single (never been married or in a civil partnership) and widowed as well as filtering on age greater than or equal to 18.  We selected a total of 17 variables that may help explain our dependent variable, marital status.
 
 
 We can attach a table of all variables we examined here:
@@ -39,8 +39,11 @@ library(readr)
 library(RCurl)
 library(foreign)
 
+```
 
+```{r, echo = FALSE, message=FALSE, eval = TRUE}
 # Load data
+
 url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
 filtered_data <- getURL(url)
 filtered_data <- read.csv(textConnection(filtered_data))
@@ -49,6 +52,7 @@ fd <- filtered_data
 fd <- as.data.frame(fd)
 
 ```
+
 
 
 ```{r, echo = FALSE, eval=TRUE}
@@ -215,12 +219,12 @@ Next we want to look at the marital status, types of dwelling and region. We fin
 However we can't imply that there is a causal relationship. 
 
 
-### Dependent childre and tenure
+### Dependent children and tenure
 
 ```{r}
-family_compo <- fd%>% select(dpcfamuk11, tenure, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
-family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class) %>% filter(!is.na(children_class))%>% group_by(tenure, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate, fill = tenure))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+family_compo %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
 
 ```
 
