@@ -43,7 +43,8 @@ library(foreign)
 
 ```{r, echo = FALSE, eval=FALSE}
 # changing the factor names 
-
+fd <- filtered_data
+fd <- as.data.frame(fd)
 fd[, 'region'] <- factor(fd[,'region'], levels = c(1, 2, 3, 4, 5, 6, 7,
                                                        8, 9, 10, 11), 
                            labels = c('North East', 'North West', 'Yorkshire and the Humber', 
@@ -176,34 +177,49 @@ We look at the divorce rate of each qualification across regions. Overall the di
 # london and non-london
 region1 %>% select(binary_marstat, region, Highest_qualification, binary_region_factor) %>% filter(!is.na(Highest_qualification), !(Highest_qualification == 'Others'))%>% group_by(Highest_qualification, binary_region_factor)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = Highest_qualification, y = divorce_rate, fill = binary_region_factor))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
+
+fd %>% dplyr::select(region, binary_marstat, Highest_qualification, binary_region_factor)%>% filter(!is.na(Highest_qualification), !(Highest_qualification == 'Others')) %>%group_by(region, Highest_qualification)%>% summarise(divorce_rate = mean(binary_marstat)) %>% ggplot(aes(x = region, y = divorce_rate, fill = Highest_qualification))+ geom_col(position = 'dodge')+ theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Divorce rate by qualifications across regions')
+
 ```
 
 We moved on to explore hours worked and region, but do not find any apparent relationships as the number of hours worked across all regions seem to be even. 
 
 ```{r, eval = FALSE, echo = FALSE}
-fdata %>% dplyr::select(region, marstat, hours) %>% group_by(region, hours) %>% summarise(count = n())%>%
+fd %>% dplyr::select(region, marstat, hours) %>% group_by(region, hours) %>% summarise(count = n())%>%
   ungroup() %>% group_by(region)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = hours, y = prop))+ geom_col() + facet_wrap(~region)+theme(axis.text.x = element_text(angle = 30, hjust = 1)) + labs(title = 'Hours worked by region')
 ```
 
 
 ### Type of dweling and region and marital status
 We continue to explore other variables in our list and see if we could find any pattern. When we compare the types of dwelling across regions, inner London has the highest percentage of people staying in rented property. 
+
+Type of dwelling by region
 ```{r}
-
-region1 %>% select(binary_marstat, region, Highest_qualification, binary_region_factor) %>% filter(!is.na(Highest_qualification), !(Highest_qualification == 'Others'))%>% group_by(Highest_qualification, binary_region_factor)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = Highest_qualification, y = divorce_rate, fill = binary_region_factor))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
-
-fd %>% dplyr::select(region, marstat, tenure) %>% filter(marstat != 'Single' & marstat != 'Widowed')%>%group_by(region, tenure) %>% summarise(count = n())%>%
+tenure_data %>% dplyr::select(region, binary_marstat, tenure) %>% group_by(region, tenure) %>% summarise(count = n())%>%
   ungroup() %>% group_by(region)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = tenure, y = prop, fill= tenure))+ geom_col() + scale_fill_manual(values = c('gray50', 'gray50','gray50', 'red','gray50','gray50')) + facet_wrap(~region)+theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Tenure by region')
-
 ```
-
 
 We next look at the marital status of people staying in different types of dwelling. Not surprisingly separated and divorced people stay in rented property, whereas people marriage often opt to own a house either by outright ownership or mortgage. 
 
 ```{r}
-fulldata %>% dplyr::select(marstat, tenure) %>% filter(marstat != 'Single' & marstat != 'Widowed')%>%group_by(marstat, tenure) %>% summarise(count = n())%>%
-  ungroup() %>% group_by(marstat)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = tenure, y = prop))+ geom_col() + facet_wrap(~marstat)+theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Tenure by marital status')
+tenure_data %>% dplyr::select(binary_marstat, tenure) %>% group_by(tenure) %>%summarise(divorce_rate = mean(binary_marstat)) %>% ggplot(aes(x = tenure, y = divorce_rate))+ geom_col() +theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Divorce rate by tenure')
+```
 
+Now compare the divorce rate across regions and tenure. The divorce rates 
+
+```{r}
+tenure_data %>% dplyr::select(region, binary_marstat, tenure)%>% group_by(region, tenure)%>% summarise(divorce_rate = mean(binary_marstat)) %>% ggplot(aes(x = tenure, y = divorce_rate, fill = tenure))+ geom_col() + scale_fill_manual(values = c('gray50', 'gray50','gray50', 'red','gray50','gray50'))+ facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Tenure by region')
+```
+
+
+
+
+```{r}
+tenure_data <- filter(fd, !is.na(tenure))
+
+
+
+tenure_data %>% dplyr::select(binary_marstat, tenure, region) %>% group_by(region, tenure) %>%summarise(divorce_rate = mean(binary_marstat)) %>% ggplot(aes(x = region, y = divorce_rate,  fill = tenure))+ geom_col(position = 'dodge')+theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Divorce rate by tenure across region')
 ```
 Next we want to look at the marital status, types of dwelling and region. We find the proportion of people in each types of dwelling upon total population in each marital status within each region. We observe that in London a majority of people staying in rented properties regardless of their marital status, but even more so among separated and divorced people. On the other hand, most people in marriage opt to stay in owned property in other regions, even among the divorced and separated couples. 
 
@@ -220,7 +236,7 @@ fulldata %>% dplyr::select(region, marstat, tenure) %>% filter(marstat != 'Singl
 ```{r}
 family_compo <- fd%>% select(dpcfamuk11, tenure, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
-family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class) %>% filter(!is.na(children_class))%>% group_by(tenure, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate, fill = tenure))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class) %>% filter(!is.na(children_class))%>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
 ```
 
@@ -278,7 +294,7 @@ region1 %>% select(marstat, transport, wpzhome)%>% filter(!is.na(wpzhome)) %>% g
 
 url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
 filtered_data <- getURL(url)
-#filtered_data <- read.csv(textConnection(filtered_data))
+filtered_data <- read.csv(textConnection(filtered_data))
 
 fd <- filtered_data
 mine <- select(fd, X1, disability, marstat, binary_marstat)
