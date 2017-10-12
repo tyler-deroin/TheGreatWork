@@ -97,6 +97,8 @@ fd[, 'tenure'] <- factor(fd[,'tenure'], levels = c(1, 2, 3, 4, 5),
 
 fd <- fd%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
+fd <- fd %>% mutate(youngest_child_age = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==8|dpcfamuk11==14, 'youngest aged 0-4', ifelse(dpcfamuk11==3|dpcfamuk11==9|dpcfamuk11==15, 'youngest aged 5-7', ifelse(dpcfamuk11==4|dpcfamuk11==10|dpcfamuk11==16, 'youngest aged 8-9', ifelse(dpcfamuk11==5|dpcfamuk11==11|dpcfamuk11==17, 'youngest aged 10-11', ifelse(dpcfamuk11==6|dpcfamuk11==12|dpcfamuk11==18, 'youngest aged 12-15', ifelse(dpcfamuk11==7|dpcfamuk11==13|dpcfamuk11==19, 'youngest aged 16-18', NA))))))))
+
 ```
 
 # Descriptive Statistics and Correlation Tests
@@ -230,8 +232,14 @@ region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = me
 
 ### Dependent children
 
-When people get married they are often in love and happy, most married couples look forward parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage when they are young (Waite, Linda and Lee 1991); the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). One explanation for this is that experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
+When people get married they are often in love and happy, most married couples look forward parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage only when they are preschool-aged (Becker et al. 1977), as they grow older, their binding force in a marriage weakens; the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). 
 
+The birth of an infant often brings couples back together who would have otherwise divorced. Experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
+
+We are keen to explore if we observe the same pattern in our data (1) as the age of youngest child grows, the more likely the couple will get divorced/separated (2) the more children a couple have, the less likely they are to be divorced/separated. 
+
+
+Becker, Gary S., Elizabeth Landes, and Robert T. Michael. 1977. "An Economic Analysis of Marital Instability." Journal of Political Economy 85:1141-87.
 
 Waite, Linda J, and Lee A Lillard. 1991. Children and marital disruption. American Journal of Sociology 96(4):930–953. 
 
@@ -241,10 +249,21 @@ Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption
 
 
 ```{r}
-family_compo <- fd%>% select(dpcfamuk11, tenure, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+family_compo <- fd%>% select(youngest_child_age, dpcfamuk11, tenure, binary_marstat, binary_region_factor, scgpuk11c, children_class) 
+
+%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
 
-family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class) %>% filter(!is.na(children_class))%>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class, dpcfamuk11) %>% filter(!is.na(children_class))%>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+family_compo %>%filter(dpcfamuk11 != -9)%>% select(binary_marstat, tenure, binary_region_factor, children_class, dpcfamuk11) %>% filter(!is.na(dpcfamuk11))%>% group_by(children_class, dpcfamuk11)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = dpcfamuk11, y = divorce_rate, fill = children_class))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+
+
+family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+
+family_compo %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(dpcfamuk11, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = dpcfamuk11, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Number of children in family and the youngest child age')
+
 
 ```
 
