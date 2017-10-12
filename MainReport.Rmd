@@ -53,7 +53,7 @@ We can show a few correlation tests, chi-squre tests and graphs
 
 It cannot be denied that the cultural package each person has, is a major factor in his conception of marriage, his expectations toward a relationship and his values about divorce. Thus, in this part, we examine the factors of Ethnicity, Religion and Country of birth to try to determine the effect it has on divorce rate. 
 
-These variables are distributed as the following pie charts show :
+These variables are distributed as the following pie charts shows :
 
 ```{r, echo=FALSE, message = FALSE}
 # Importing Data
@@ -101,7 +101,7 @@ pie(mydata_relig$count, labels = mydata_relig$religionew, col=rainbow(length(lbl
 ```
 
 
-Our assumption is that divorce rate will be higher among white people who are generally considered having more liberal values, and permissive laws for divorce. We also expect that the less commited people are toward religion, the more they are likely to get divorced.
+Our assumption is that divorce rate will be higher among white people who are generally considered having more liberal values, and permissive laws for divorce. We also expect that the less committed people are toward religion, the more they are likely to get divorced.
 
 
 ```{r, echo = FALSE}
@@ -163,9 +163,9 @@ ggplot(data=ethngrouped_divorced) + geom_bar(aes(x = reorder(ethngrouped, prop),
 ```
 
 The divorce rate shows us some insight that we expected. For example, Asian divorce rate is significantly lower that for White people. The divorce rate is also very high for a person of mixed ethnicities. This might be explained by the fact that a mixed couple requires a more considerable amount of culture adjustment and understandings, and is more likely to divorce. Parents' value about divorce may thus transmitted to the child.
-However, one more unexpected result is that divorce rate are the highest among black people. If this trends has been the subject of a lot of studies in the US (e.g. http://www.swaraylawoffice.com/2010/08/divorce-rate-amongst-african-immigrants/), they are quite scarce about UK. 
-It is commonly known that Black people are still strongly discriminated against in the US, with inequalities in wages, access to education and higher crime rate. But these do not explain entirely the high divorce rate among Black people in UK as we can see in the Education/Ethnicity cross checking, divorce rate is high among Black people no matter whar their education level is. 
-An other reason we can think about is the discrepancy between African and European culture. Women in Africa are inferior to men, and confine themselves to domestic role. In UK, the women have the same rights as men, both socially and economically, giving them more independance and possibly leading to frictions.
+However, one more unexpected result is that divorce rate is the highest among black people. If this trend has been the subject of a lot of studies in the US (e.g. http://www.swaraylawoffice.com/2010/08/divorce-rate-amongst-african-immigrants/), they are quite scarce about UK. 
+It is commonly known that Black people are still strongly discriminated against in the US, with inequalities in wages, access to education and higher crime rate. But these do not explain entirely the high divorce rate among Black people in UK as we can see in the Education/Ethnicity cross checking, divorce rate is high among Black people no matter what their education level is. 
+Another reason we can think about is the discrepancy between African and European culture. Women in Africa are inferior to men, and confine themselves to domestic role. In UK, the women have the same rights as men, both socially and economically, giving them more independence and possibly leading to frictions.
 
 
 
