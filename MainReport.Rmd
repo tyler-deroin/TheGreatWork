@@ -57,13 +57,9 @@ These variables are distributed as the following pie charts show :
 
 ```{r, echo=FALSE, message = FALSE}
 # Importing Data
-#url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
-
-setwd(dir= "/Users/christelleren/Desktop/Imperial/Pre-term/R - Maths and Statistics Fundations/Projet1")
-filtered_data <- read.csv(file="filtered data.csv", header=TRUE, sep=",")
-
-#filtered_data <- getURL(url)
-#filtered_data <- read.csv(textConnection(filtered_data))
+url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+filtered_data <- getURL(url)
+filtered_data <- read.csv(textConnection(filtered_data))
 myowndata <- filtered_data[,c('marstat', 'binary_marstat', 'cobg', 'ethnicityew', 'religionew')]
 
 ```
@@ -153,7 +149,7 @@ ethn$ethngrouped <- ifelse(ethn$ethnicityew == "English/Welsh/Scottish/Northern 
 
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message=FALSE}
 ethngrouped <- ethn %>% dplyr::select(binary_marstat, ethngrouped, count) %>% group_by(ethngrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(ethngrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
 
 #ggplot(data=ethngrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity grouped') + facet_wrap(~ ethngrouped)
@@ -197,7 +193,7 @@ myowndata$cobggrouped <- ifelse(myowndata$cobg == "England" | myowndata$cobg == 
 
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message=FALSE}
 cbgrouped <- cb %>% dplyr::select(binary_marstat, cobggrouped, count) %>% group_by(cobggrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(cobggrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
 
 #ggplot(data = cbgrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'countries of birth grouped') + facet_wrap(~ cobggrouped)
