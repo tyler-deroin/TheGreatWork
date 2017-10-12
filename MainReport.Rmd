@@ -596,6 +596,7 @@ We first examined whether the health and marital status are independent of each 
 
 ggplot(mine3, aes(disability, divorce_rate))+geom_bar(stat = "identity")+labs(x = "Health", y = "Divorce Rate")
 ```
+
 Exhibit 1 Health and Divorce Rate
 
 Exhibit 1 illustrates how health has an observable impact on divorce rate. The divorce rate for "Not limited" people is 19.53%, which is 16.77% lower than the divorce rate of 36.30% for "Limit a lot" people. However, there is a chance that this model is highly correlated with other variables such as social status and may not be the real drive for this observable impact. It is possible that the people with lower social status is not able to afford healthcare or healthy lifestyle and therefore lead to higher divorce rate.
@@ -604,6 +605,7 @@ Exhibit 1 illustrates how health has an observable impact on divorce rate. The d
 ```{r echo = FALSE}
 ggplot(mine2, aes(factor(scgpuk11c), divorce_rate, fill = disability))+geom_bar(stat = "identity", position = "dodge") + labs(x = "Social Grade", y = "Divorce Rate")
 ```
+
 Exhibit 2 Controling the Social Grade
 
 To validate our finding, we further examined the colinearity between social grade and health. According to Exhibit 2, within each social grade, the impact of disability on health is still very strong and especially strong in the lowest social grade, level 4.Therefore, we conclude that the variable health has a real and observable impact on marital status. The more severe the health problem, the higher the divorce rate. 
@@ -668,7 +670,7 @@ census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/North
 ```
 
 
-```{r echo = FALSE, warning= = FALSE}
+```{r echo = FALSE, warning= FALSE}
 lr <- select(census, caseno, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
 lr$separated <- lr$marstat
 lr <- lr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
@@ -699,7 +701,7 @@ testData <- rbind(test_ones, test_zeros)  # row bind the 1's and 0's
 ```
 
 
-```{r message = FALSE, echo = FALSE, results = "hide"}
+```{r message = FALSE, echo = FALSE, results = "hide", warning = FALSE}
 
 library(smbinning)
 library(InformationValue)
