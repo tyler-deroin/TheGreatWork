@@ -19,14 +19,21 @@ Exhibit 1: Density of un-modified age
 The chart below, depicts the density distribution of ages in the dataset before any modifications were applied. As expected, instances of the observations' ages are relatively equal among the dataset, which should ensure a fair representation of all age groups.
 ```{r}
 #need to add in original dataset to show density of original age distribution
-ggplot(data = fd, aes(x = age)) + geom_density()
+ggplot(data = fd, aes(x = age)) + geom_density(fill = 'grey') + ylab("Density") + xlab("Age") + ggtitle("Density distribution of age")
 ```
 
 Exhibit 2: Divorce rate by age:
 
-The chart above shows the divorce rate (as defined in the introduction) for each of the 83 age groups (18 to 100). 
-The divorce rate for observations aged 18, 19, and 20 is significantly higher than observations in their 20's. The rationale for this observation is the scarcity (nominally) of married people who are 20 and less, which results in a large relative proportion of divorced people when compared to other age groups.
-The age with the highest divorce rate in the dataset is 48. This is likely due to the fact that younger people are less likely to be divorced, as those would be early-on in their marriages. Furthermore, older people have a greater chance of being being remarried.
+The chart below shows the divorce rate (as defined in the introduction) for each of the 83 age groups (18 to 100). 
+
+The divorce rate for observations aged 18, 19, and 20 is significantly higher than observations in their 20's. The rationale for this observation is the scarcity (nominally) of married people who are 20 and less, which results in a large relative proportion of divorced people when compared to other age groups. The high divorce rate among young people can also be explained by the often painful and troubelsome reality of marriage. 
+https://www.theguardian.com/lifeandstyle/2014/dec/19/-sp-why-do-so-many-young-marriages-come-to-an-early-end
+
+The age with the highest divorce rate in the dataset is 48. Likely causes of this statistic are people who got married earlier in their lives and got divorced for reasons stated above, and now belong to this age group, or the shift in societal norms where staying in an un-happy marriage is no longer neccessary and where online dating and other activities are so readily available. 
+http://www.prince-evans.co.uk/2017/01/divorce-rate-highest-among-aged-40-49/
+
+This is further suported by the fact that younger people are less likely to be divorced, as those would be early-on in their marriages,while older people have a greater chance of being being remarried and thus will once again be classified as married according to the classifications in the UK census data. Additionally, although divorce rates for people above the age of 53 (Baby Boomers) are rising, this class of society generally has traditional values and beleif systems that consider marriage to be the norm. This, therefore, supports the idea that the marginal rate of divorce decreases above the age of 48. https://www.theguardian.com/lifeandstyle/2013/aug/06/divorces-rise-over-60s
+  
 
 ```{r}
 
@@ -69,34 +76,34 @@ divorce_by_age <- data.frame(prop = c(1:83), age = new_divorced$age)
 divorce_by_age$prop <- rep(1, 83)
 divorce_by_age$prop <- new_divorced$n / new_total_group$count * 100
 
-ggplot(data = divorce_by_age, aes(x = age, y = prop)) + geom_line()
+ggplot(data = divorce_by_age, aes(x = age, y = prop)) + geom_line() + ylab("Divorce rate (%)") + xlab("Age") + ggtitle("Divorce rate by age")
 ```
 
 Exhibit 3: Proportion of divorced people by age
 
 The chart above shows the proportion of divorced people for each age group. The chart shows a curve resembling a normal distribution.
 ```{r}
-ggplot(data = new_divorced, aes(x = age, y = prop)) + geom_line()
+ggplot(data = new_divorced, aes(x = age, y = prop)) + geom_line() + ylab("Divorce rate (%)") + xlab("Age") + ggtitle("Proportion of divorced people by age")
 ```
 
-Exhibit 4: Divorce rate by age and sex
+Exhibit 5: Divorce rate by age and social grade
 
-The chart below is an exhibit of divorce rates by age for each sex. The general trend presented is a consistintly higher divorce rate for women across all age groups. This seems to suggest that women are more likely to be divorced than men on average.
-A t test of mean divorce rate between men and women reveals a statistically significant difference between the mean divorce rate of men and women.
+The following chart depicts the distribution of divorce rate by age per level of social class.
+From the data, it is apparent that the trend observed in the overall sample can also be observed when examining social classes, the divorce rate trends upwards from the lower ages and peaks in the late 40's, this trend then reverses with the divorce rate decreasing with age.
+
+It may be worth noting that while the general trend is consistent accross social classes, one inconsistency does seem to appear in the 18 age group. The people aged 18 in the "AB" social class have a much lower divorce rate of around 8% than the other social classes at more than 20%. This seems to suggest that at young ages, affluence and wealth might potentially provide a cushion for a married couple and alleviate the stresses of financial troubles, which play a big role in divorce.
+
+These findings provide support the notion that divorce rate distibution by age seems to behave similarly regardless of other variables. Further analysis may be required to assess the validity of this claim accross different variables.
+
+
 
 ```{r}
-data3 <-  data2 %>% filter(age > 22 & age < 70)
-total_group1 <- data3 %>% dplyr::select(age, seperated, sex) %>% group_by(age, sex) %>% summarise(count = n())
-divorce_by_age_bysex <- data.frame(age = total_group1$age)
-divorce_by_age_bysex$prop <- divorced_bysex$n / total_group1$count * 100
-divorce_by_age_bysex$sex <- divorced_bysex$sex
-divorce_by_age_bysex$sex <- factor(divorce_by_age_bysex$sex, levels = c(1,2), labels = c('Male', 'Female'))
-ggplot(data = divorce_by_age_bysex, aes(x = age, y = prop, fill = sex)) + geom_col(position = 'dodge') + ylab("%")
-
-male <- divorce_by_age_bysex %>% filter(sex == 'Male')
-female <- divorce_by_age_bysex %>% filter(sex == 'Female')
-t.test(male$prop, female$prop)
-
+#creating a new dataframe grouped by age social grade and divorced status
+data4 <- data2 %>% dplyr::select(age, scgpuk11c, seperated) %>% filter(scgpuk11c != -9) %>% filter(seperated == 1) %>% group_by(age, scgpuk11c, seperated) %>% summarise(n = n())
+data4_control <- data2 %>% dplyr::select(age, scgpuk11c) %>% filter(scgpuk11c != -9) %>% group_by(age, scgpuk11c) %>% summarise(n = n())
+data4$divorce_rate <- data4$n / data4_control$n * 100
+data4$scgpuk11c <- factor(data4$scgpuk11c, levels = c(1,2,3,4), labels = c("AB", "C1", "C2", "DE"))
+ggplot(data = data4, aes(x = age, y = divorce_rate)) + geom_col(position = 'dodge', colour = 'red') + facet_wrap(~scgpuk11c) + ylab("Divorce rate (%)") + xlab("Age") + ggtitle("Divorce rate distibution by age per social grade")
 
 ```
 
@@ -121,3 +128,16 @@ As a measure of the overall model's explanatory powe, three main measures were u
 The best fit was determined by adding and removing the variables above until the best combination of the aforementioned metrics was obtained.
 
 *insert model here*
+
+
+# Conclusion
+
+This paper has examined variables hypothesised to affect divorce rates in the UK. According to the analysis performed above, it is evident that divorce rates have multiple determinant factors, which themselves are potentially co-dependant. This analysis does not attempt to single out a specific variable or group of variables as the main determinant of divorce rate, but examines potential affecting variables.
+
+Lacking any information about a particular person, age would be a good first predictor of marital status. It has been shown that people in their 40's have the highest divorce rates in society. This is true regardless of social status.
+
+It is evident that social class and education level are amongst the biggest influencing factors of divorce rate as depicted by the strong inverse relationship of these variables with divorce rates. This trend holds true accross all ethnicities and religions, which further suppports the strength of the variables.
+
+
+
+
