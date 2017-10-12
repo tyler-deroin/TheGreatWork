@@ -248,27 +248,6 @@ Qi Xu1*, Jianning Yu2 and Zeqi Qiu3. 2015, The impact of children on divorce ris
 Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
 
 
-```{r}
-family_compo <- fd%>% select(youngest_child_age, dpcfamuk11, tenure, binary_marstat, binary_region_factor, scgpuk11c, children_class) 
-
-%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
-
-
-family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class, dpcfamuk11) %>% filter(!is.na(children_class))%>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
-
-family_compo %>%filter(dpcfamuk11 != -9)%>% select(binary_marstat, tenure, binary_region_factor, children_class, dpcfamuk11) %>% filter(!is.na(dpcfamuk11))%>% group_by(children_class, dpcfamuk11)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = dpcfamuk11, y = divorce_rate, fill = children_class))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
-
-
-
-family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
-
-family_compo %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(dpcfamuk11, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = dpcfamuk11, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Number of children in family and the youngest child age')
-
-
-```
-
-
-
 
 ## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
