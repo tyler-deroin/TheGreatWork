@@ -49,8 +49,172 @@ We can show a few correlation tests, chi-squre tests and graphs
 
 
 
-## Religion and Culture & Marriage
+## Culture & Marriage
 
+
+Ethnicites/Religion/Countries 
+
+It cannot be denied that the cultural package each person has, is a major factor in his conception of marriage, his expectations toward a relationship and his values about divorce. Thus, in this part, we examine the factors of Ethnicity, Religion and Country of birth to try to determine the effect it has on divorce rate. Our assumption is that divorce rate will be higher among white people who are generally considered having more 'liberal' values, and permissive laws for divorce. e also expect that the less commited people are toward monotheist religions, the more they are likely to get divorced.
+
+
+```{r, echo=FALSE, message = FALSE}
+# Importing Data
+url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+filtered_data <- getURL(url)
+filtered_data <- read.csv(textConnection(filtered_data))
+myowndata <- filtered_data[,c('marstat', 'binary_marstat', 'cobg', 'ethnicityew', 'religionew')]
+```
+
+
+```{r, echo = FALSE}
+# Correlation tests
+cor.test(myowndata$religionew, myowndata$binary_marstat)
+
+cor.test(myowndata$ethnicityew, myowndata$binary_marstat)
+
+cor.test(myowndata$cobg, myowndata$binary_marstat)
+```
+
+
+
+```{r, echo = FALSE}
+# Factoring Data
+
+myowndata[, 'cobg'] <- factor(myowndata[, 'cobg'], levels = seq(1,26), labels = c("England","Scotland", "Northern Ireland", "Wales", "United Kingdom not otherwise specified", "Ireland", "Germany", "Poland", "Other EU countries: Member countries in 2001", "Other EU countries: Accession countries 2001 to 2011", "Rest of Europe", "North Africa", "Central and Western Africa", "South and Eastern Africa", "Africa not otherwise specified", "Middle East", "Eastern Asia", "Southern Asia: Bangladesh", "Southern Asia: India", "Southern Asia: Pakistan", "Rest of Southern Asia", "South-East Asia", "Central Asia", "North America and the Caribbean", "Central and South America", "Antarctica, Oceania and other"))
+
+myowndata[, 'binary_marstat'] <- factor(myowndata[, 'binary_marstat'], levels = c(1,0), labels = c("Separated/Divorced","Married/In a relationship"))
+
+myowndata[, 'ethnicityew'] <- factor(myowndata[, 'ethnicityew'], levels = seq(1,18), labels = c("English/Welsh/Scottish/Northern Irish/British", "Irish", "Gypsy or Irish Traveller", "Other White", "Mixed/multiple ethnic group: White and Black Caribbean", "Mixed/multiple ethnic group: White and Black African", "Mixed/multiple ethnic group: White and Asian", "Mixed/multiple ethnic group: Other Mixed", "Indian", "Pakistani", "Bangladeshi", "Chinese", "Other Asian", "African", "Caribbean", "Other Black", "Arab", "Any other ethnic group"))
+
+myowndata[, 'religionew'] <- factor(myowndata[, 'religionew'], levels = seq(1,9), labels = c("No religion", "Christian", "Buddhist", "Hindu", "Jewish", "Muslim", "Sikh", "Other religion", "Not stated"))
+
+myowndata <- na.omit(myowndata)
+```
+
+
+```{r, echo = FALSE, eval=FALSE}
+# Chi-Square Test
+
+chisq.test(myowndata$cobg, myowndata$binary_marstat)
+
+chisq.test(myowndata$ethnicityew, myowndata$binary_marstat)
+
+chisq.test(myowndata$religionew, myowndata$binary_marstat)
+```
+
+Basic correlation tests between the marital status and the different variables (religion, ethnicities, country of birth) indicate that there is a correlation, and there is a similar pattern between them. Our aim is to have more insight about it.
+
+### Ethnicities
+
+```{r, echo = FALSE}
+ethn <- myowndata %>% dplyr::select(binary_marstat, ethnicityew) %>% group_by(binary_marstat, ethnicityew) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(ethnicityew) %>% mutate(prop = count / sum(count))
+
+#ggplot(data=ethn) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity') + facet_wrap(~ ethnicityew)
+
+ethn_divorced = filter(ethn, binary_marstat == "Separated/Divorced")
+ethn_divorced <- ethn_divorced[order(ethn_divorced$prop),]
+
+#ggplot(data=ethn_divorced) + geom_bar(aes(x = reorder(ethnicityew, prop), y = prop), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Ethnicity')
+```
+```{r, echo = FALSE}
+# Grouping ethnicities
+
+ethn$ethngrouped <- ifelse(ethn$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | ethn$ethnicityew == "Irish" | ethn$ethnicityew == "Gypsy or Irish Traveller"| ethn$ethnicityew == "Other White", "White", 
+                                ifelse( ethn$ethnicityew == "Indian" | ethn$ethnicityew == "Pakistani"| ethn$ethnicityew == "Bangladeshi" | ethn$ethnicityew == "Chinese"| ethn$ethnicityew == "Other Asian", "Asian", 
+                                        ifelse(ethn$ethnicityew == "African" | ethn$ethnicityew == "Caribbean"| ethn$ethnicityew == "Other Black", "Black", 
+                                               ifelse(ethn$ethnicityew == "Arab", 'Arab', 
+                                                      ifelse(ethn$ethnicityew == "Any other ethnic group", "Any other ethnic group", "Mix Group")))))
+
+
+myowndata$ethngrouped <- ifelse(myowndata$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | myowndata$ethnicityew == "Irish" | myowndata$ethnicityew == "Gypsy or Irish Traveller"| myowndata$ethnicityew == "Other White", "White", 
+                                ifelse( myowndata$ethnicityew == "Indian" | myowndata$ethnicityew == "Pakistani"| myowndata$ethnicityew == "Bangladeshi" | myowndata$ethnicityew == "Chinese"| myowndata$ethnicityew == "Other Asian", "Asian", 
+                                        ifelse(myowndata$ethnicityew == "African" | myowndata$ethnicityew == "Caribbean"| myowndata$ethnicityew == "Other Black", "Black", 
+                                               ifelse(myowndata$ethnicityew == "Arab", 'Arab', 
+                                                      ifelse(myowndata$ethnicityew == "Any other ethnic group", "Any other", "Mix Group")))))
+
+```
+
+```{r, echo = FALSE}
+ethngrouped <- ethn %>% dplyr::select(binary_marstat, ethngrouped, count) %>% group_by(ethngrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(ethngrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
+
+#ggplot(data=ethngrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity grouped') + facet_wrap(~ ethngrouped)
+
+#ggplot(data=ethngrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = reorder(ethngrouped, prop)), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity grouped') 
+
+ethngrouped_divorced = filter(ethngrouped, binary_marstat == "Separated/Divorced")
+
+ggplot(data=ethngrouped_divorced) + geom_bar(aes(x = reorder(ethngrouped, prop), y = prop, fill = ethngrouped), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'Divorce Rate per Ethnicity')
+
+```
+
+The divorce rate show us some insight that we expected. For example, Asian divorce rate is significantly lower that for White people. The divorce rate is also very high for a person of mixed ethnicities. This might be explained by the fact that a mixed couple requires a more considerable amount of adjustment, tolerance and understandings and is more likely to divorce (http://ftp.iza.org/dp5960.pdf). Parents' value about divorce may thus transmitted to the child.
+However, one unexpected result is that divorce rate are the highest among black people.
+
+Find article for uk or compare to us (http://www.swaraylawoffice.com/2010/08/divorce-rate-amongst-african-immigrants/)
+## Religion
+```{r, echo = FALSE}
+relig <- myowndata %>% dplyr::select(binary_marstat, religionew) %>% group_by(binary_marstat, religionew) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(religionew) %>% mutate(prop = count / sum(count))
+
+#ggplot(data=relig) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge()) + facet_wrap(~ religionew) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'religion')
+
+relig_divorced = filter(relig, binary_marstat == "Separated/Divorced")
+
+ggplot(data=relig_divorced) + geom_bar(aes(x = reorder(religionew, prop), y = prop, fill = religionew), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Religion')
+```
+
+```{r, echo = FALSE}
+myowndata %>% select(binary_marstat, religionew, ethngrouped) %>% group_by(religionew, ethngrouped) %>% summarise(count = n())%>% tidyr::spread(key = ethngrouped, value = count)
+```
+Cross-checking the religion and ethnicities variables, we can observe that the religion with the highest divorce rate are 'Other religion', 'No religion' or 'No stated', which show more liberal values.
+However Buddhist also have high divorce rate, probably due to its permissive point of view toward divorce (https://www.budsas.org/ebud/whatbudbeliev/237.htm).
+Finally, the next religion with the highest divorce rate is Christianism which is not very surprising. Indeed, even though marriage is a sacred union in the religion, Europeans tend to be less and less committed or involved in religions, and even christianism' strictness toward divorce is changing.
+
+
+## Country of birth
+
+```{r, echo = FALSE}
+cb <- myowndata %>% dplyr::select(binary_marstat, cobg) %>% group_by(binary_marstat, cobg) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(cobg) %>% mutate(prop = count / sum(count))
+```
+
+```{r, echo = FALSE}
+
+## Grouping countries of birth by area
+
+cb$cobggrouped <- ifelse(cb$cobg == "England" | cb$cobg == "Scotland"| cb$cobg == "Northern Ireland"  | cb$cobg =="Wales"  | cb$cobg =="United Kingdom not otherwise specified" , "UK", 
+                         ifelse(cb$cobg =="Ireland" | cb$cobg =="Germany"  | cb$cobg =="Poland"  | cb$cobg =="Other EU countries: Member countries in 2001"  | cb$cobg =="Other EU countries: Accession countries 2001 to 2011"  | cb$cobg =="Rest of Europe", "Europe",
+                                ifelse( cb$cobg == "Middle East" | cb$cobg == "Eastern Asia" | cb$cobg == "Southern Asia: Bangladesh" | cb$cobg == "Southern Asia: India" | cb$cobg == "Southern Asia: Pakistan" | cb$cobg == "Rest of Southern Asia" | cb$cobg == "South-East Asia" | cb$cobg == "Central Asia", "Middle East and Asia", 
+                                        ifelse(cb$cobg ==  "North Africa" | cb$cobg == "Central and Western Africa" | cb$cobg == "South and Eastern Africa" | cb$cobg == "Africa not otherwise specified", "Africa", 
+                                               ifelse(cb$cobg == 'North America and the Caribbean' | cb$cobg == 'Central and South America', 'The Americas and the Caribbean', 'Antarctica, Oceania and other')))))
+
+myowndata$cobggrouped <- ifelse(myowndata$cobg == "England" | myowndata$cobg == "Scotland"| myowndata$cobg == "Northern Ireland"  | myowndata$cobg =="Wales"  | myowndata$cobg =="United Kingdom not otherwise specified" , "UK", 
+                         ifelse(myowndata$cobg =="Ireland" | myowndata$cobg =="Germany"  | myowndata$cobg  =="Poland"  | myowndata$cobg  =="Other EU countries: Member countries in 2001"  | myowndata$cobg  =="Other EU countries: Accession countries 2001 to 2011"  | myowndata$cobg  =="Rest of Europe", "Europe",
+                                ifelse( myowndata$cobg  == "Middle East" | myowndata$cobg  == "Eastern Asia" | myowndata$cobg  == "Southern Asia: Bangladesh" | myowndata$cobg  == "Southern Asia: India" | myowndata$cobg  == "Southern Asia: Pakistan" | myowndata$cobg  == "Rest of Southern Asia" | myowndata$cobg  == "South-East Asia" | myowndata$cobg  == "Central Asia", "Middle East and Asia", 
+                                        ifelse(myowndata$cobg  ==  "North Africa" | myowndata$cobg  == "Central and Western Africa" | myowndata$cobg  == "South and Eastern Africa" | myowndata$cobg  == "Africa not otherwise specified", "Africa", 
+                                               ifelse(myowndata$cobg  == 'North America and the Caribbean' | myowndata$cobg  == 'Central and South America', 'The Americas and the Caribbean', 'Antarctica, Oceania (including Australasia) and other')))))
+
+```
+
+```{r, echo = FALSE}
+cbgrouped <- cb %>% dplyr::select(binary_marstat, cobggrouped, count) %>% group_by(cobggrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(cobggrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
+
+#ggplot(data = cbgrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'countries of birth grouped') + facet_wrap(~ cobggrouped)
+
+cbgrouped_divorced = filter(cbgrouped, binary_marstat == "Separated/Divorced")
+
+ggplot(data=cbgrouped_divorced) + geom_bar(aes(x = reorder(cobggrouped, prop), y = prop, fill = cobggrouped), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Country of Birth')
+```
+
+We can see that the pattern of the countries of birth has some similarities with the world divorce rate heatmap you can find following this link: http://i.imgur.com/dep7XIZ.png.
+
+
+```{r, echo = FALSE}
+#myowndata %>% select(binary_marstat, cobggrouped, ethngrouped) %>% group_by(cobggrouped, ethngrouped) %>% summarise(count = n())%>% tidyr::spread(key = ethngrouped, value = count)
+```
+ 
+The countries of birth tend to confirm the pattern we already found for ethnicities.   
+
+
+https://www.bls.gov/opub/mlr/2013/article/marriage-and-divorce-patterns-by-gender-race-and-educational-attainment.htm
 
 
 ## Age & Marriage
