@@ -627,8 +627,9 @@ Exhibit 3 Controling the Social Grade
 To validate our finding, we further examined the colinearity between social grade and health. According to Exhibit 3, within each social grade, the impact of disability on health is still very strong and especially strong in the lowest social grade, level 4.Therefore, we conclude that the variable health has a real and observable impact on marital status. The more severe the health problem, the higher the divorce rate.
 
 
+
 # Logistic Regression
-A comprehensive regression analysis of all correlated variables
+##A comprehensive regression analysis of all correlated variables
 
 The variables presented thus far in this report are the variables hypothesised to have the greatest effect on a person's liklihood of being divorced in the sample. As the dependant variable in question is a dichotomous variable (divorced or not divorced), we built a logistic regression model and selected the variables discussed above as dependent variables. Our goal was to use the variables we examined to predict whether a person will be divorced. 
 
@@ -642,6 +643,7 @@ Overall, we experimented with a total of 8 variables to find the best Logistic R
 7. Ethnicity
 8. Whether the person lives in London
 
+The best fit was determined by adding and removing the variables above until the best combination of the aforementioned metrics was obtained.
 As a measure of the overall model's explanatory power, three main measures were use:
 1) Misclassification Rate
 2) c-statistic or AUC (area under ROC curve)
@@ -649,8 +651,7 @@ As a measure of the overall model's explanatory power, three main measures were 
 
 In addition, we also examined the multicolinearity of our model to ensure its validity. 
 
-The best fit was determined by adding and removing the variables above until the best combination of the aforementioned metrics was obtained.
-
+In order to understand how good our model is, first we partitioned the original dataset into 70% training data and 30% test data. After we used the training data to train the model, we used the test data to compare our models.
 
 ```{r echo = FALSE}
 
@@ -674,12 +675,8 @@ census$ethnicityew <- factor(census$ethnicityew, levels = seq(1,18), labels = c(
 "Any other ethnic group"))
 
 #1: white 2: Asian 3: black 4: Arab 5: other
-
-
 census$ethngrouped <- census$ethnicityew
-
-census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | census$ethnicityew == "Irish" | census$ethnicityew == "Gypsy or Irish Traveller"| census$ethnicityew == "Other White", 1, 
-                                ifelse( census$ethnicityew == "Indian" | census$ethnicityew == "Pakistani"| census$ethnicityew == "Bangladeshi" | census$ethnicityew == "Chinese"| census$ethnicityew == "Other Asian", 2, 
+census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | census$ethnicityew == "Irish" | census$ethnicityew == "Gypsy or Irish Traveller"| census$ethnicityew == "Other White", 1,       ifelse( census$ethnicityew == "Indian" | census$ethnicityew == "Pakistani"| census$ethnicityew == "Bangladeshi" | census$ethnicityew == "Chinese"| census$ethnicityew == "Other Asian", 2, 
                                         ifelse(census$ethnicityew == "African" | census$ethnicityew == "Caribbean"| census$ethnicityew == "Other Black", 3, 
                                                ifelse(census$ethnicityew == "Arab", 4, 
                                                       ifelse(census$ethnicityew == "other", "Any other ethnic group", 5)))))
@@ -687,43 +684,20 @@ census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/North
 ```
 
 
-```{r echo = FALSE}
-
-lrr <- select(census, caseno, ethngrouped, dpcfamuk11, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
-lrr$separated <- lrr$marstat
-lrr <- lrr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
-lrr <- lrr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
-lrr <- lrr %>% mutate(london = ifelse(region == 10, 1, 0))
-lrr <- lrr %>% mutate(dpcfamuk11 = ifelse(dpcfamuk11==1, 0, ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 1, ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 2, ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 3, NA)))))
-colnames(lrr) <- c("ID", "ethnicity", "children", "disability", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
-#replace -9 with NA 
-lrr <- lrr %>% mutate_all(funs(replace(., . == -9, NA)))
-lr <- lrr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion), !is.na(children))
-dim(lrr)
-
-```
-
-
-
-
-```{r echo = FALSE}
-lr <- select(census, caseno, marstat, hlqupuk11, scgpuk11c, religionew, age, region, disability)
+```{r}
+lr <- select(census, caseno, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
 lr$separated <- lr$marstat
 lr <- lr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
 lr <- lr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
 lr <- lr %>% mutate(london = ifelse(region == 10, 1, 0))
-colnames(lr) <- c("ID", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
+colnames(lr) <- c("ID", "disability", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
 #replace -9 with NA 
 lr <- lr %>% mutate_all(funs(replace(., . == -9, NA)))
 lr <- lr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion))
-dim(lr)
 
 ```
 
-This code chunk creates separates the data and creates training and validation data
-
 ```{r echo = FALSE}
-##################Rongkai
 # Create training and validation dataset
 input_ones <- lr[which(lr$separated == 1), ]  # all 1's
 input_zeros <- lr[which(lr$separated == 0), ]  # all 0's
@@ -740,26 +714,23 @@ test_zeros <- input_zeros[-input_zeros_training_rows, ]
 testData <- rbind(test_ones, test_zeros)  # row bind the 1's and 0's 
 ```
 
-Instead of using only the predict function, I will add the plogis function to make predicted values 0 and 1 instead of log values ---Rongkai
 
-```{r message = FALSE, echo = FALSE}
-##########################Rongkai
+```{r message = FALSE, echo = FALSE, result = "hide"}
+
 
 library(smbinning)
 library(InformationValue)
 
-
-
-
-
 # use training data to train the model
-lin_mo1 <- glm(separated ~ social_grade + education + religion + age + london + children + ethnicity, data = trainingData, family = binomial)
-
-lin_mo2 <- glm(separated ~ social_grade + education + religion + age + london + disability + children +ethnicity, data = trainingData, family = binomial)
+#lin_mo1 <- glm(separated ~ social_grade + education + religion + age + london + children + ethnicity, data = trainingData, family = binomial)
+#lin_mo2 <- glm(separated ~ social_grade + education + religion + age + london + disability + children +ethnicity, data = trainingData, family = binomial)
+lin_mo1 <- glm(separated ~ social_grade + education, data = trainingData, family = binomial)
+lin_mo2 <- glm(separated ~ social_grade + education + age, data = trainingData, family = binomial)
 
 lin_mo3 <- glm(separated ~ social_grade + education + disability, data = trainingData, family = binomial(link = "logit"))
 lin_mo4 <- glm(separated ~ social_grade + education + disability + age, data = trainingData, family = binomial(link = "logit"))
 lin_mo5 <- glm(separated ~ social_grade, data = trainingData, family = binomial(link = "logit"))
+l
 
 # create predicted values and un-log it.
 predicted1 <- predict(lin_mo1, testData, type = "response")
@@ -771,14 +742,11 @@ predicted5 <- predict(lin_mo5, testData, type = "response")
 Cutoff <- optimalCutoff(testData$separated, predicted3)
 
 
-confusionMatrix(testData$separated)
-
-
 # manually testing the accuracy
-pred_1 <- ifelse(predicted3 > mean(as.numeric(testData$separated)), 1, 0)
+pred <- ifelse(predicted3 > mean(as.numeric(testData$separated)), 1, 0)
  
 # Calculate the model's accuracy
-mean(testData$separated == pred_1)
+mean(testData$separated == pred)
 
 
 # check for misclassification error
@@ -797,10 +765,7 @@ plotROC(testData$separated, predicted2)
 plotROC(testData$separated, predicted1)
 
 
-# check for multicollinearity
-library(car)
-vif(lin_mo1) 
-# as long as all values are below 4, it is fine, no big deal
+
 
 
 
@@ -808,6 +773,25 @@ vif(lin_mo1)
 #library(stargazer)
 #stargazer(list(lin_mo1,lin_mo2, lin_mo3),type = "text")
 ```
+Based on our analysis, the best model contains 4 variables: Social Grade, Education, Health, and Age. These 4 variables are very likely to be the strongest drivers and predictors for divorce in the sample and the whole UK population. 
+A close look on the ROC Curve 
+```{r echo = FALSE}
+lin_mo4 <- glm(separated ~ social_grade + education + disability + age , data = trainingData, family = binomial(link = "logit"))
+predicted4 <- plogis(predict(lin_mo4, testData))
+#misClassError(testData$separated, predicted4)
+plotROC(testData$separated, predicted4)
+```
+
+
+```{r echo = FALSE}
+# check for multicollinearity
+library(car)
+vif(lin_mo4) 
+# as long as all values are below 4, it is fine, no big deal
+```
+
+
+
 
 
 # Conclusion
