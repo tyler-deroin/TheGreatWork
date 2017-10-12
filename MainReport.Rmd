@@ -597,12 +597,7 @@ mine2 <- mine2[complete.cases(mine2),]
 mine3 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat))
 ```
 
-Since health is a critical factor for a satisfied life, we would like to exmaine how health may influence the marital status in the sample. There are three levels of health indicators in this dataset: "Limit a lot", "Limit a little", and "Not limited". Each level represents the degree of daily activities a person is limited to because of his or her long-term illness. The "Not limited" category indicates that a person's day to day activities are not limited at all by the long-term health illness or there is no illness. The percentage of the people falls under the category is 8.5%, 9.4%, and 82.1% for "Limit a Lot", "Limit a little", and "Not limited" respectively, according to Exhibit 1. 
-
-```{r message = FALSE, warning = FALSE, echo = FALSE}
-ggplot(mine2, aes(x= "", fill = disability))+geom_histogram(stat = "count")+coord_polar(theta = "y")
-```
-Exhibit 1 Pie chart of the health variable
+Since health is a critical factor for a satisfied life, we would like to exmaine how health may influence the marital status in the sample. There are three levels of health indicators in this dataset: "Limit a lot", "Limit a little", and "Not limited". Each level represents the degree of daily activities a person is limited to because of his or her long-term illness. The "Not limited" category indicates that a person's day to day activities are not limited at all by the long-term health illness or there is no illness. The percentage of the people falls under the category is 8.5%, 9.4%, and 82.1% for "Limit a Lot", "Limit a little", and "Not limited" respectively. 
 
 ```{r echo = FALSE}
 chisq.test(mine$binary_marstat,mine$disability)
@@ -614,17 +609,17 @@ We first examined whether the health and marital status are independent of each 
 
 ggplot(mine3, aes(disability, divorce_rate))+geom_bar(stat = "identity")+labs(x = "Health", y = "Divorce Rate")
 ```
-Exhibit 2 Health and Divorce Rate
+Exhibit 1 Health and Divorce Rate
 
-Exhibit 2 illustrates how health has an observable impact on divorce rate. The divorce rate for "Not limited" people is 19.53%, which is 16.77% lower than the divorce rate of 36.30% for "Limit a lot" people. However, there is a chance that this model is highly correlated with other variables such as social status and may not be the real drive for this observable impact. It is possible that the people with lower social status is not able to afford healthcare or healthy lifestyle and therefore lead to higher divorce rate.
+Exhibit 1 illustrates how health has an observable impact on divorce rate. The divorce rate for "Not limited" people is 19.53%, which is 16.77% lower than the divorce rate of 36.30% for "Limit a lot" people. However, there is a chance that this model is highly correlated with other variables such as social status and may not be the real drive for this observable impact. It is possible that the people with lower social status is not able to afford healthcare or healthy lifestyle and therefore lead to higher divorce rate.
 
 
 ```{r echo = FALSE}
 ggplot(mine2, aes(factor(scgpuk11c), divorce_rate, fill = disability))+geom_bar(stat = "identity", position = "dodge") + labs(x = "Social Grade", y = "Divorce Rate")
 ```
-Exhibit 3 Controling the Social Grade
+Exhibit 2 Controling the Social Grade
 
-To validate our finding, we further examined the colinearity between social grade and health. According to Exhibit 3, within each social grade, the impact of disability on health is still very strong and especially strong in the lowest social grade, level 4.Therefore, we conclude that the variable health has a real and observable impact on marital status. The more severe the health problem, the higher the divorce rate.
+To validate our finding, we further examined the colinearity between social grade and health. According to Exhibit 2, within each social grade, the impact of disability on health is still very strong and especially strong in the lowest social grade, level 4.Therefore, we conclude that the variable health has a real and observable impact on marital status. The more severe the health problem, the higher the divorce rate.
 
 
 
@@ -715,8 +710,7 @@ testData <- rbind(test_ones, test_zeros)  # row bind the 1's and 0's
 ```
 
 
-```{r message = FALSE, echo = FALSE, result = "hide"}
-
+```{r message = FALSE, echo = FALSE, results = "hide"}
 
 library(smbinning)
 library(InformationValue)
@@ -730,7 +724,7 @@ lin_mo2 <- glm(separated ~ social_grade + education + age, data = trainingData, 
 lin_mo3 <- glm(separated ~ social_grade + education + disability, data = trainingData, family = binomial(link = "logit"))
 lin_mo4 <- glm(separated ~ social_grade + education + disability + age, data = trainingData, family = binomial(link = "logit"))
 lin_mo5 <- glm(separated ~ social_grade, data = trainingData, family = binomial(link = "logit"))
-l
+
 
 # create predicted values and un-log it.
 predicted1 <- predict(lin_mo1, testData, type = "response")
@@ -739,49 +733,41 @@ predicted3 <- plogis(predict(lin_mo3, testData))
 predicted4 <- plogis(predict(lin_mo4, testData))
 predicted5 <- predict(lin_mo5, testData, type = "response")
 
-Cutoff <- optimalCutoff(testData$separated, predicted3)
-
-
-# manually testing the accuracy
-pred <- ifelse(predicted3 > mean(as.numeric(testData$separated)), 1, 0)
- 
-# Calculate the model's accuracy
-mean(testData$separated == pred)
-
-
 # check for misclassification error
-misClassError(testData$separated, predicted1)
+#misClassError(testData$separated, predicted1)
 # 0.4311, It should be a value between 0 and 1, the lower the better
-misClassError(testData$separated, predicted2)
-misClassError(testData$separated, predicted3, threshold = Cutoff)
-misClassError(testData$separated, predicted4)
-misClassError(testData$separated, predicted5)
+#misClassError(testData$separated, predicted2)
+#misClassError(testData$separated, predicted3, threshold = Cutoff)
+#misClassError(testData$separated, predicted4)
+#misClassError(testData$separated, predicted5)
 
 
-plotROC(testData$separated, predicted5)
-plotROC(testData$separated, predicted4)
-plotROC(testData$separated, predicted3)
-plotROC(testData$separated, predicted2)
-plotROC(testData$separated, predicted1)
-
-
-
-
-
-
+#plotROC(testData$separated, predicted5)
+#plotROC(testData$separated, predicted4)
+#plotROC(testData$separated, predicted3)
+#plotROC(testData$separated, predicted2)
+#plotROC(testData$separated, predicted1)
 
 #library(stargazer)
 #stargazer(list(lin_mo1,lin_mo2, lin_mo3),type = "text")
 ```
-Based on our analysis, the best model contains 4 variables: Social Grade, Education, Health, and Age. These 4 variables are very likely to be the strongest drivers and predictors for divorce in the sample and the whole UK population. 
-A close look on the ROC Curve 
+Based on our analysis, the best model contains 4 variables: Social Grade, Education, Health, and Age. 
+
+A close look on the ROC Curve can give us more insights. Shown by the sensitivity and 1-specifity index, the increase of the True positive Rate of our model is slightly faster than the increase of the false positive rate. Since the greater the AUC (Area Under the Curve) the better the predictive ability of the model, the AUC of our model 0.6105 indicates that our model is fair but not perfect. 
 ```{r echo = FALSE}
 lin_mo4 <- glm(separated ~ social_grade + education + disability + age , data = trainingData, family = binomial(link = "logit"))
 predicted4 <- plogis(predict(lin_mo4, testData))
 #misClassError(testData$separated, predicted4)
 plotROC(testData$separated, predicted4)
 ```
+Next, we calculate the model's accuracy by comparing it to the mean of the test dataset. The result indicates that the accuracy rate is 58.89%. The accuracy rate tells us how accurate our predicted result compared to the actual result is. Our model will get about 59 correct results within 100 examples. 
 
+```{r}
+# Calculate the model's accuracy
+pred <- ifelse(predicted4 > mean(as.numeric(testData$separated)), 1, 0)
+mean(testData$separated == pred)
+```
+Finally, we examined the multicollinearity in the model by using the Variance Inflation Factor. According to the result below, all indicators are very close to 1 and well below 5. Therefore, all predictors within this particular logistic regression are not linearly related. We can safely conclude that the multicollinearity is very low and the model is valid.
 
 ```{r echo = FALSE}
 # check for multicollinearity
@@ -790,8 +776,9 @@ vif(lin_mo4)
 # as long as all values are below 4, it is fine, no big deal
 ```
 
+Unfortunately, we recognize that our model does not outperform the base prediction because the mean divorce rate is about 21%. This means that if we predict all people are not divorced, we will yield a higher prediction result. We suspect that this result is a problem rooted in the original massive census dataset because there are a total of 121 variables, and we are likely to miss some potential drivers of the marital status.
 
-
+Nevertheless, our finding is still significant because we identified a few strong drivers to unhappy marriages. Among all variables we dicussed in this report, Social Grade, Education, Age, and Health are the most important factors for predicting if a person is likely to be divorced.  
 
 
 # Conclusion
