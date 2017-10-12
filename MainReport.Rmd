@@ -606,7 +606,9 @@ ggplot(mine2, aes(factor(scgpuk11c), divorce_rate, fill = disability))+geom_bar(
 ```
 Exhibit 2 Controling the Social Grade
 
-To validate our finding, we further examined the colinearity between social grade and health. According to Exhibit 2, within each social grade, the impact of disability on health is still very strong and especially strong in the lowest social grade, level 4.Therefore, we conclude that the variable health has a real and observable impact on marital status. The more severe the health problem, the higher the divorce rate.
+To validate our finding, we further examined the colinearity between social grade and health. According to Exhibit 2, within each social grade, the impact of disability on health is still very strong and especially strong in the lowest social grade, level 4.Therefore, we conclude that the variable health has a real and observable impact on marital status. The more severe the health problem, the higher the divorce rate. 
+
+Furthermore, similar findings are also published elsewhere. A report by Time (http://time.com/83486/divorce-is-more-likely-if-the-wife-not-the-husband-gets-sick/) dicussed that 75% of couples dealing with chronic disease end in divorce. To conclude, health problems indeed significantly influence the divorce rate. 
 
 
 
