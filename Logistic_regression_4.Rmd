@@ -43,7 +43,7 @@ testData <- rbind(test_ones, test_zeros)  # row bind the 1's and 0's
 
 Instead of using only the predict function, I will add the plogis function to make predicted values 0 and 1 instead of log values ---Rongkai
 
-```{r}
+```{r message = FALSE, }
 ##########################Rongkai
 
 library(smbinning)
@@ -51,27 +51,36 @@ library(InformationValue)
 # use training data to train the model
 lin_mo1 <- glm(separated ~ social_grade + education + religion + age + london, data = trainingData, family = binomial(link = "logit"))
 lin_mo2 <- glm(separated ~ social_grade + education + religion + age + london + disability, data = trainingData, family = binomial(link = "logit"))
-lin_mo3 <- glm(separated ~ social_grade, data = trainingData, family = binomial(link = "logit"))
-
+lin_mo3 <- glm(separated ~ social_grade + education + disability, data = trainingData, family = binomial(link = "logit"))
+lin_mo4 <- glm(separated ~ social_grade + education + disability + age, data = trainingData, family = binomial(link = "logit"))
 
 # create predicted values and un-log it.
 predicted1 <- plogis(predict(lin_mo1, testData))
 predicted2 <- plogis(predict(lin_mo2, testData))
 predicted3 <- plogis(predict(lin_mo3, testData))
+predicted4 <- plogis(predict(lin_mo4, testData))
+
+
+# check for misclassification error
+misClassError(testData$separated, predicted1)
+# 0.4311, It should be a value between 0 and 1, the lower the better
+misClassError(testData$separated, predicted2)
+misClassError(testData$separated, predicted3)
+misClassError(testData$separated, predicted4)
+
+plotROC(testData$separated, predicted4)
+
 
 # check for multicollinearity
 library(car)
 vif(lin_mo1) 
 # as long as all values are below 4, it is fine, no big deal
 
-# check for misclassification error
-misClassError(testData$separated, predicted1)
-# 0.4311, It should be a value between 0 and 1, the lower the better
-misClassError(testData$separated, predicted2)
 
 
-library(stargazer)
-stargazer(list(lin_mo1,lin_mo2, lin_mo3),type = "text")
+
+#library(stargazer)
+#stargazer(list(lin_mo1,lin_mo2, lin_mo3),type = "text")
 ```
 
 
