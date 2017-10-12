@@ -630,29 +630,184 @@ To validate our finding, we further examined the colinearity between social grad
 # Logistic Regression
 A comprehensive regression analysis of all correlated variables
 
-The variables presented thus far in this paper are the variables hypothesised to have the greatest effect on a person's likliness of being divorced in a certain society.
+The variables presented thus far in this report are the variables hypothesised to have the greatest effect on a person's liklihood of being divorced in the sample. As the dependant variable in question is a dichotomous variable (divorced or not divorced), we built a logistic regression model and selected the variables discussed above as dependent variables. Our goal was to use the variables we examined to predict whether a person will be divorced. 
 
-As the dependant variable in question is a dichotomous variable (divorced or not divorced), a logistic regression was performed where the divorced status is the dependant variable, and the variables mentioned above are the independant variables.
+Overall, we experimented with a total of 8 variables to find the best Logistic Regression Model:
+1. Social Grade
+2. Education
+3. Age
+4. Religion
+5. Health
+6. Number of Children
+7. Ethnicity
+8. Whether the person lives in London
 
-A logistic model is used to predict the probability of a binary response based on a set of other variables.
-
-Regression formula:
-divorced status = intercept + b1age + b2education_level + b3number_of_children + b4religion + b5london_or_not +...
-
-
-As a measure of the overall model's explanatory powe, three main measures were use:
-1) Akaike Information Criterion 
+As a measure of the overall model's explanatory power, three main measures were use:
+1) Misclassification Rate
 2) c-statistic or AUC (area under ROC curve)
 3) The accuracy of the predictions above a certain threshold (the mean divorce rate for our purposes)
 
+In addition, we also examined the multicolinearity of our model to ensure its validity. 
+
 The best fit was determined by adding and removing the variables above until the best combination of the aforementioned metrics was obtained.
 
-*insert model here*
+
+```{r echo = FALSE}
+
+census$ethnicityew <- factor(census$ethnicityew, levels = seq(1,18), labels = c("English/Welsh/Scottish/Northern Irish/British", 
+"Irish", 
+"Gypsy or Irish Traveller", 
+"Other White", 
+"Mixed/multiple ethnic group: White and Black Caribbean", 
+"Mixed/multiple ethnic group: White and Black African", 
+"Mixed/multiple ethnic group: White and Asian", 
+"Mixed/multiple ethnic group: Other Mixed", 
+"Indian", 
+"Pakistani", 
+"Bangladeshi", 
+"Chinese", 
+"Other Asian", 
+"African", 
+"Caribbean", 
+"Other Black", 
+"Arab", 
+"Any other ethnic group"))
+
+#1: white 2: Asian 3: black 4: Arab 5: other
+
+
+census$ethngrouped <- census$ethnicityew
+
+census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | census$ethnicityew == "Irish" | census$ethnicityew == "Gypsy or Irish Traveller"| census$ethnicityew == "Other White", 1, 
+                                ifelse( census$ethnicityew == "Indian" | census$ethnicityew == "Pakistani"| census$ethnicityew == "Bangladeshi" | census$ethnicityew == "Chinese"| census$ethnicityew == "Other Asian", 2, 
+                                        ifelse(census$ethnicityew == "African" | census$ethnicityew == "Caribbean"| census$ethnicityew == "Other Black", 3, 
+                                               ifelse(census$ethnicityew == "Arab", 4, 
+                                                      ifelse(census$ethnicityew == "other", "Any other ethnic group", 5)))))
+
+```
+
+
+```{r echo = FALSE}
+
+lrr <- select(census, caseno, ethngrouped, dpcfamuk11, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
+lrr$separated <- lrr$marstat
+lrr <- lrr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+lrr <- lrr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+lrr <- lrr %>% mutate(london = ifelse(region == 10, 1, 0))
+lrr <- lrr %>% mutate(dpcfamuk11 = ifelse(dpcfamuk11==1, 0, ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 1, ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 2, ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 3, NA)))))
+colnames(lrr) <- c("ID", "ethnicity", "children", "disability", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
+#replace -9 with NA 
+lrr <- lrr %>% mutate_all(funs(replace(., . == -9, NA)))
+lr <- lrr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion), !is.na(children))
+dim(lrr)
+
+```
 
 
 
-# Hypothesis Testing and Prediction Model (Helene's)
 
+```{r echo = FALSE}
+lr <- select(census, caseno, marstat, hlqupuk11, scgpuk11c, religionew, age, region, disability)
+lr$separated <- lr$marstat
+lr <- lr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+lr <- lr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+lr <- lr %>% mutate(london = ifelse(region == 10, 1, 0))
+colnames(lr) <- c("ID", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
+#replace -9 with NA 
+lr <- lr %>% mutate_all(funs(replace(., . == -9, NA)))
+lr <- lr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion))
+dim(lr)
+
+```
+
+This code chunk creates separates the data and creates training and validation data
+
+```{r echo = FALSE}
+##################Rongkai
+# Create training and validation dataset
+input_ones <- lr[which(lr$separated == 1), ]  # all 1's
+input_zeros <- lr[which(lr$separated == 0), ]  # all 0's
+set.seed(100)  # for repeatability of samples
+input_ones_training_rows <- sample(1:nrow(input_ones), 0.7*nrow(input_ones))  # 1's for training
+input_zeros_training_rows <- sample(1:nrow(input_zeros), 0.7*nrow(input_zeros))  # 0's for training. Pick as many 0's as 1's
+training_ones <- input_ones[input_ones_training_rows, ]  
+training_zeros <- input_zeros[input_zeros_training_rows, ]
+trainingData <- rbind(training_ones, training_zeros)  # row bind the 1's and 0's 
+
+# Create Test Data
+test_ones <- input_ones[-input_ones_training_rows, ]
+test_zeros <- input_zeros[-input_zeros_training_rows, ]
+testData <- rbind(test_ones, test_zeros)  # row bind the 1's and 0's 
+```
+
+Instead of using only the predict function, I will add the plogis function to make predicted values 0 and 1 instead of log values ---Rongkai
+
+```{r message = FALSE, echo = FALSE}
+##########################Rongkai
+
+library(smbinning)
+library(InformationValue)
+
+
+
+
+
+# use training data to train the model
+lin_mo1 <- glm(separated ~ social_grade + education + religion + age + london + children + ethnicity, data = trainingData, family = binomial)
+
+lin_mo2 <- glm(separated ~ social_grade + education + religion + age + london + disability + children +ethnicity, data = trainingData, family = binomial)
+
+lin_mo3 <- glm(separated ~ social_grade + education + disability, data = trainingData, family = binomial(link = "logit"))
+lin_mo4 <- glm(separated ~ social_grade + education + disability + age, data = trainingData, family = binomial(link = "logit"))
+lin_mo5 <- glm(separated ~ social_grade, data = trainingData, family = binomial(link = "logit"))
+
+# create predicted values and un-log it.
+predicted1 <- predict(lin_mo1, testData, type = "response")
+predicted2 <- plogis(predict(lin_mo2, testData))
+predicted3 <- plogis(predict(lin_mo3, testData))
+predicted4 <- plogis(predict(lin_mo4, testData))
+predicted5 <- predict(lin_mo5, testData, type = "response")
+
+Cutoff <- optimalCutoff(testData$separated, predicted3)
+
+
+confusionMatrix(testData$separated)
+
+
+# manually testing the accuracy
+pred_1 <- ifelse(predicted3 > mean(as.numeric(testData$separated)), 1, 0)
+ 
+# Calculate the model's accuracy
+mean(testData$separated == pred_1)
+
+
+# check for misclassification error
+misClassError(testData$separated, predicted1)
+# 0.4311, It should be a value between 0 and 1, the lower the better
+misClassError(testData$separated, predicted2)
+misClassError(testData$separated, predicted3, threshold = Cutoff)
+misClassError(testData$separated, predicted4)
+misClassError(testData$separated, predicted5)
+
+
+plotROC(testData$separated, predicted5)
+plotROC(testData$separated, predicted4)
+plotROC(testData$separated, predicted3)
+plotROC(testData$separated, predicted2)
+plotROC(testData$separated, predicted1)
+
+
+# check for multicollinearity
+library(car)
+vif(lin_mo1) 
+# as long as all values are below 4, it is fine, no big deal
+
+
+
+
+#library(stargazer)
+#stargazer(list(lin_mo1,lin_mo2, lin_mo3),type = "text")
+```
 
 
 # Conclusion
