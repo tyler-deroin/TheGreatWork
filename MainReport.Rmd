@@ -51,9 +51,10 @@ fd <- as.data.frame(fd)
 ```
 
 
-```{r, echo = FALSE, eval=TRUE}
+```{r, echo = FALSE, eval=FALSE}
 # changing the factor names 
-
+fd <- filtered_data
+fd <- as.data.frame(fd)
 fd[, 'region'] <- factor(fd[,'region'], levels = c(1, 2, 3, 4, 5, 6, 7,
                                                        8, 9, 10, 11), 
                            labels = c('North East', 'North West', 'Yorkshire and the Humber', 
@@ -68,7 +69,7 @@ fd[,'marstat'] <- factor(fd[,'marstat'], level = c(1,2,3,4,5,6),
                            labels = c('Single', 'Married', 'Same-sex', 'Separated', 
                                       'Divorced', 'Widowed'))
 
-fd <- mutate(fd, binary_marstat = ifelse(marstat == "Separated" | marstat == 'Divorced', 1, 0))
+fd <- mutate(fd, 'binary_marstat' = ifelse(marstat == "Separated" | marstat == 'Divorced', 1, 0))
 
 fd[,'transport']<- factor(fd[,'transport'], levels = c(1, 2, 3, 4, 5, 6, 7,
                                                            8, 9, 10, 11), 
@@ -95,6 +96,9 @@ fd[,'hours']<- factor(fd[,'hours'], level= c(1,2,3,4), labels = c('15 or less', 
 
 fd[, 'tenure'] <- factor(fd[,'tenure'], levels = c(1, 2, 3, 4, 5), 
                            labels = c('Owns outright', 'Owns with a mortgage', 'Shared ownership', 'Rents', 'Rent-free'))
+
+fd <- fd%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+
 
 ```
 
@@ -229,32 +233,25 @@ The p-value is less than 5% and it means that the we can reject the null hypothe
 
 We use the data to plot a mosaic plot which essentially represents the residual table graphically. 
 
-
 ```{r}
 # select the data relevant for region
-region1 <- fd %>% select(binary_marstat, age, aggdtwpew11g, region, marstat, transport, wpzhome, Highest_qualification, binary_region_factor, binary_region_num,hours, tenure)
+region1 <- dplyr:: select(fd, binary_marstat, age, aggdtwpew11g, region, marstat, transport, wpzhome, Highest_qualification, binary_region_factor, binary_region_num,hours, tenure)
 
-#explore marital status with region
-region_count<- region1 %>% select(marstat, region) %>% group_by(region, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count)
+# plot divorce rate for region
+region1%>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-region_count%>% mutate(divorce_rate = (Divorced + Separated)/(Divorced + Married + Separated))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
-
-```
-
-```{r}
 # chi-squared test
 region_test <- region_count[,-1]
 rownames(region_test) <- as.data.frame(region_count)[,1]
 chi_region <- chisq.test(as.data.frame(region_test))
 chi_region
 round(chi_region$residuals, 3)
-```
 
-```{r}
 #Mosaicplot
 mosaicplot(region_test, shade = TRUE, las=2,
            main = "marital status")
 ```
+
 
 We further perform t-test to compare the divorce rate of Inner London and all the other regions. Inner London has a divorce rate of approximately 25%, higher than the average of 20% across all regions. The difference is statistically significant. 
 
@@ -277,100 +274,63 @@ t.test(outside_london, fd$binary_marstat[fd$region == "Wales"])
 
 The article aforementioned states that the factors contributing to the high divorce rate in coastal regions are due to the high deprivation and possibly sheer boredoem in winter. Our data shows otherwise. London is anything but a deprived and boring city. What could have contributed to the different in findings? 
 
-Secondly, we suspect there are other more salient influencing factors and this secton of our paper will explore that. 
+Secondly, we suspect there are other more salient influencing factors and this secton of our paper will explore that. We explore the variables by looking at how the divorce rates for these variables vary across region. We explored education, social grade, age, hours worked, number of children in family, tenure of dwelling, ethinicity, religion and transport. Other than age, the pattern is very similar across regions. We observe a significantly high divorce rate for people aged 50 and above in Inner London. However Inner London is a very young city with mean age of residents at around 47, and median age 45 (population mean and median are both 52). 
 
-### qualification and region
+We further break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see that any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group. The observation suggests a larger proportion of people aged 50 and above are divorced or separated in Inner London than elsewhere. 
 
-We start by looking at the highest qualifications achieved by residents in each region. We do so by plotting the proportion of people with each qualifications upon the total population of that region. London has the highest proportion of people with a level 4 qualifications. Does that contribute to the higher divorce rate in London? It is contradictory to what we observe when looking at the correlations between qualifications and divorce rate. We found that the divorce rate among highly educated people tend to be lower. Let's now look at among people with the same qualifications, what's the proportion of bad marriage. 
+According to this research by Susan L. Brown and I-Fen Lin (18 Oct 2012).  https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/
+Various factors contribute to the increasing divorce rate among older people. A better economic security, and more social interactions with people could have contributed to that as well. Or it is also possible that many people are in their second marriage in their 50s and 60s and high-order marriages are more likely to end up in divorces than first orders. Or it could also be possible that older people in Inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. 
 
 
-When qualification is the same, does region affect marital status?
+18 July 2017  By ONS Digital
+Office for National Statistics reported that while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women.  (https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/)
 
-We look at the divorce rate of each qualification across regions. Overall the divorce rate is slightly lower among people with high qualifications, which is consistent with our findings. But we still observe a high divorce rate in inner London which can't be explained by qualifications. 
 
-```{r}
-# london and non-london
-region1 %>% select(binary_marstat, region, Highest_qualification, binary_region_factor) %>% filter(!is.na(Highest_qualification), !(Highest_qualification == 'Others'))%>% group_by(Highest_qualification, binary_region_factor)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = Highest_qualification, y = divorce_rate, fill = binary_region_factor))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+
+```{r region_vs_others, echo = FALSE, eval= FALSE}
+
+fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate))+ geom_col() + facet_wrap(~region)
+
+fd %>% filter(!is.na(children_class))%>% group_by(region, children_class) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+fd %>% filter(!is.na(Highest_qualification) & Highest_qualification != 'Others') %>%group_by(region, Highest_qualification) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = Highest_qualification, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1)) 
+
+
+fd %>% filter(!is.na(hours)) %>%group_by(region, hours) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = hours, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+fd %>% filter(!is.na(ethnicityew)) %>%group_by(region, ethnicityew) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = ethnicityew, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+fd %>% filter(!is.na(religionew)) %>%group_by(region, religionew) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = religionew, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+
+fd %>% filter(!is.na(tenure)) %>%group_by(region, tenure) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = tenure, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+
+fd %>% filter(!is.na(wpzhome)) %>%group_by(region, wpzhome) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = wpzhome, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
 ```
 
-We moved on to explore hours worked and region, but do not find any apparent relationships as the number of hours worked across all regions seem to be even. 
+```{r region_vs_age}
 
-```{r, eval = FALSE, echo = FALSE}
-fdata <- dplyr::select(region, marstat, hours) %>% group_by(region, hours) %>% summarise(count = n())%>%
-  ungroup() %>% group_by(region)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = hours, y = prop))+ geom_col() + facet_wrap(~region)+theme(axis.text.x = element_text(angle = 30, hjust = 1)) + labs(title = 'Hours worked by region')
-```
+fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate))+ geom_col() + facet_wrap(~region)
+
+fd %>% filter(!is.na(age))%>% ggplot(aes(x = age))+ geom_histogram() + facet_wrap(~region)
+
+region1%>% filter(age <50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
 
-### Type of dweling and region and marital status
-We continue to explore other variables in our list and see if we could find any pattern. When we compare the types of dwelling across regions, inner London has the highest percentage of people staying in rented property. 
-```{r}
-
-region1 %>% select(binary_marstat, region, Highest_qualification, binary_region_factor) %>% filter(!is.na(Highest_qualification), !(Highest_qualification == 'Others'))%>% group_by(Highest_qualification, binary_region_factor)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = Highest_qualification, y = divorce_rate, fill = binary_region_factor))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
-
-fd %>% dplyr::select(region, marstat, tenure) %>% filter(marstat != 'Single' & marstat != 'Widowed')%>%group_by(region, tenure) %>% summarise(count = n())%>%
-  ungroup() %>% group_by(region)%>%mutate(prop = count /sum(count)) %>% ggplot(aes(x = tenure, y = prop, fill= tenure))+ geom_col() + scale_fill_manual(values = c('gray50', 'gray50','gray50', 'red','gray50','gray50')) + facet_wrap(~region)+theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(title = 'Tenure by region')
+region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
 ```
 
-
-We next look at the marital status of people staying in different types of dwelling. Not surprisingly separated and divorced people stay in rented property, whereas people marriage often opt to own a house either by outright ownership or mortgage. 
-
-Next we want to look at the marital status, types of dwelling and region. We find the proportion of people in each types of dwelling upon total population in each marital status within each region. We observe that in London a majority of people staying in rented properties regardless of their marital status, but even more so among separated and divorced people. On the other hand, most people in marriage opt to stay in owned property in other regions, even among the divorced and separated couples. 
-
-However we can't imply that there is a causal relationship. 
-
-
-### Dependent childre and tenure
+### Dependent children and tenure
 
 ```{r}
 family_compo <- fd%>% select(dpcfamuk11, tenure, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
-family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class) %>% filter(!is.na(children_class))%>% group_by(tenure, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate, fill = tenure))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
-```
-
-## Transport and marital status
-Other than types of dwelling, we want to further analyse how people commute to work. As reports have shown that the longer it takes for people to get to work, the lower the happiness level. 
-
-As we do not have data on the duration of daily commute from home to work, but we have means of transport and distance of home from work to simulate that. 
-
-We first look at the percentage of bad marriage among total married and previously married people across different means of commute. We find that bus shows a higher divorce rate. 
-
-### Divorce rate by transport
-```{r}
-transport_count<- region1 %>% select(marstat, transport) %>% filter(!is.na(transport))%>% group_by(transport, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count)
-
-transport_count%>% mutate(divorce_rate = (Divorced + Separated)/(Divorced + Married + Separated))%>% ggplot(aes(x = transport, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
-
-```
-
-To further test our hypothesis that means of commute influence marital status, we run a chi-squared test. We get a p-value below 5% so we can conclude that it does have impact to some extent. 
-
-Chi-squared test
-```{r}
-transport_test <- transport_count[,-1]
-rownames <- as.data.frame(transport_count)[,1]
-rownames(transport_test) <- as.data.frame(transport_count)[,1]
-chi_transport <- chisq.test(as.data.frame(transport_test))
-chi_transport
-#round(chi_region$residuals, 3)
-
-```
-
-
-### Divorce rate by transport per distance to work
-
-Means of transport alone does not tell us much, but combined with distance from home to work it could provide some insights. We find the divorce_rate for each commute methods by distance to work. We plot two graphs one is with transport on the x-axis, the other with distance to work on x-axis. 
-There is a slight increase in divorce rate as the distance to work increases across all means of transport. When we compare the different means of transport for the same distance to work, there are more divorced and separated couples who are travelling by bus. 
-
-
-```{r}
-# x: transport, wrap by distance to work
-region1 %>% select(marstat, transport, wpzhome)%>% filter(!is.na(wpzhome)) %>% group_by(wpzhome, transport, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count) %>% mutate(divorce_rate = (Divorced + Separated)/(Divorced + Married + Separated))%>% ggplot(aes(x = transport, y = divorce_rate))+ geom_col() + facet_wrap(~wpzhome)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))
-
-# x: distrance to work, wrap by transport 
-region1 %>% select(marstat, transport, wpzhome)%>% filter(!is.na(wpzhome)) %>% group_by(wpzhome, transport, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count) %>% mutate(divorce_rate = (Divorced + Separated)/(Divorced + Married + Separated))%>% ggplot(aes(x = wpzhome, y = divorce_rate))+ geom_col() + facet_wrap(~transport)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))
+family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class) %>% filter(!is.na(children_class))%>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
 ```
 
@@ -379,12 +339,21 @@ region1 %>% select(marstat, transport, wpzhome)%>% filter(!is.na(wpzhome)) %>% g
 
 ## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
+#This should be made universal and not distinct to any one local machine
 
-mine <- select(fd, disability, marstat, binary_marstat)
+url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+filtered_data <- getURL(url)
+filtered_data <- read.csv(textConnection(filtered_data))
+
+fd <- filtered_data
+mine <- select(fd, X1, disability, marstat, binary_marstat)
+
 mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
 mine$binary_marstat <- factor(mine$binary_marstat, levels = c(0,1), labels = c("married", "divorced"))
 chisq.test(mine$binary_marstat,mine$disability)
+
 ```
+
 A chi-square test of the two variables indicate that the correlation between marital status and long-term health problem is significant. This finding suggests that the two variables are not independent of each other. Long-term health problem will influence marital status. 
 
 ```{r echo = FALSE}
