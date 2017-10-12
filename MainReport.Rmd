@@ -5,6 +5,8 @@ author: "Team M"
 date: "October 11, 2017"
 output: pdf_document
 
+---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
@@ -97,6 +99,8 @@ fd[, 'tenure'] <- factor(fd[,'tenure'], levels = c(1, 2, 3, 4, 5),
 
 fd <- fd%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
+fd <- fd %>% mutate(youngest_child_age = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==8|dpcfamuk11==14, 'youngest aged 0-4', ifelse(dpcfamuk11==3|dpcfamuk11==9|dpcfamuk11==15, 'youngest aged 5-7', ifelse(dpcfamuk11==4|dpcfamuk11==10|dpcfamuk11==16, 'youngest aged 8-9', ifelse(dpcfamuk11==5|dpcfamuk11==11|dpcfamuk11==17, 'youngest aged 10-11', ifelse(dpcfamuk11==6|dpcfamuk11==12|dpcfamuk11==18, 'youngest aged 12-15', ifelse(dpcfamuk11==7|dpcfamuk11==13|dpcfamuk11==19, 'youngest aged 16-18', NA))))))))
+
 ```
 
 # Descriptive Statistics and Correlation Tests
@@ -111,13 +115,17 @@ We can show a few correlation tests, chi-squre tests and graphs
 
 It cannot be denied that the cultural package each person has, is a major factor in his conception of marriage, his expectations toward a relationship and his values about divorce. Thus, in this part, we examine the factors of Ethnicity, Religion and Country of birth to try to determine the effect it has on divorce rate. 
 
-These variables are distributed as the following pie charts shows :
+These variables are distributed as the following pie charts show :
 
 ```{r, echo=FALSE, message = FALSE}
 # Importing Data
-url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
-filtered_data <- getURL(url)
-filtered_data <- read.csv(textConnection(filtered_data))
+#url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+
+setwd(dir= "/Users/christelleren/Desktop/Imperial/Pre-term/R - Maths and Statistics Fundations/Projet1")
+filtered_data <- read.csv(file="filtered data.csv", header=TRUE, sep=",")
+
+#filtered_data <- getURL(url)
+#filtered_data <- read.csv(textConnection(filtered_data))
 myowndata <- filtered_data[,c('marstat', 'binary_marstat', 'cobg', 'ethnicityew', 'religionew')]
 
 ```
@@ -159,7 +167,7 @@ pie(mydata_relig$count, labels = mydata_relig$religionew, col=rainbow(length(lbl
 ```
 
 
-Our assumption is that divorce rate will be higher among white people who are generally considered having more liberal values, and permissive laws for divorce. We also expect that the less committed people are toward religion, the more they are likely to get divorced.
+Our assumption is that divorce rate will be higher among white people who are generally considered having more liberal values, and permissive laws for divorce. We also expect that the less commited people are toward religion, the more they are likely to get divorced.
 
 
 ```{r, echo = FALSE}
@@ -183,7 +191,7 @@ chisq.test(myowndata$ethnicityew, myowndata$binary_marstat)
 chisq.test(myowndata$religionew, myowndata$binary_marstat)
 ```
 
-Basic correlation tests between the marital status and the different variables (religion, ethnicities, country of birth) indicate that there is a correlation, and there is a similar pattern between them. Our aim is to have more insight about it.
+Basic correlation tests between the marital status and the different variables (religion, ethnicities, country of birth) indicate that there is a correlation (p-value < 5%). Our aim is to have more insight about it.
 
 ### Ethnicities
 
@@ -207,7 +215,7 @@ ethn$ethngrouped <- ifelse(ethn$ethnicityew == "English/Welsh/Scottish/Northern 
 
 ```
 
-```{r, echo = FALSE, message=FALSE}
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 ethngrouped <- ethn %>% dplyr::select(binary_marstat, ethngrouped, count) %>% group_by(ethngrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(ethngrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
 
 #ggplot(data=ethngrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity grouped') + facet_wrap(~ ethngrouped)
@@ -221,19 +229,19 @@ ggplot(data=ethngrouped_divorced) + geom_bar(aes(x = reorder(ethngrouped, prop),
 ```
 
 The divorce rate shows us some insight that we expected. For example, Asian divorce rate is significantly lower that for White people. The divorce rate is also very high for a person of mixed ethnicities. This might be explained by the fact that a mixed couple requires a more considerable amount of culture adjustment and understandings, and is more likely to divorce. Parents' value about divorce may thus transmitted to the child.
-However, one more unexpected result is that divorce rate is the highest among black people. If this trend has been the subject of a lot of studies in the US (e.g. http://www.swaraylawoffice.com/2010/08/divorce-rate-amongst-african-immigrants/), they are quite scarce about UK. 
-It is commonly known that Black people are still strongly discriminated against in the US, with inequalities in wages, access to education and higher crime rate. But these do not explain entirely the high divorce rate among Black people in UK as we can see in the Education/Ethnicity cross checking, divorce rate is high among Black people no matter what their education level is. 
-Another reason we can think about is the discrepancy between African and European culture. Women in Africa are inferior to men, and confine themselves to domestic role. In UK, the women have the same rights as men, both socially and economically, giving them more independence and possibly leading to frictions.
+However, one more unexpected result is that divorce rate are the highest among black people. If this trends has been the subject of a lot of studies in the US (e.g. http://www.swaraylawoffice.com/2010/08/divorce-rate-amongst-african-immigrants/), they are quite scarce about UK. 
+It is commonly known that Black people are still strongly discriminated against in the US, with inequalities in wages, access to education and higher crime rate. But these do not explain entirely the high divorce rate among Black people in UK as we can see in the Education/Ethnicity cross checking, divorce rate is high among Black people no matter whar their education level is. 
+An other reason we can think about is the discrepancy between African and European culture. Women in Africa are inferior to men, and confine themselves to domestic role. In UK, the women have the same rights as men, both socially and economically, giving them more independance and possibly leading to frictions.
 
 
 
 ## Country of birth
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 cb <- myowndata %>% dplyr::select(binary_marstat, cobg) %>% group_by(binary_marstat, cobg) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(cobg) %>% mutate(prop = count / sum(count))
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 
 ## Grouping countries of birth by area
 
@@ -251,7 +259,7 @@ myowndata$cobggrouped <- ifelse(myowndata$cobg == "England" | myowndata$cobg == 
 
 ```
 
-```{r, echo = FALSE, message=FALSE}
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 cbgrouped <- cb %>% dplyr::select(binary_marstat, cobggrouped, count) %>% group_by(cobggrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(cobggrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
 
 #ggplot(data = cbgrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'countries of birth grouped') + facet_wrap(~ cobggrouped)
@@ -287,7 +295,7 @@ myowndata %>% select(binary_marstat, religionew, ethngrouped) %>% group_by(relig
 ```
 Cross-checking the religion and ethnicities variables, we can observe that the religions with the highest divorce rate are 'Other religion', 'No religion' or 'No stated', which might be a sign of more liberal values.
 Buddhists also have high divorce rate, probably due to its permissive point of view toward divorce (https://www.budsas.org/ebud/whatbudbeliev/237.htm). However, the ratio of Buddhists is very low, so their divorce rate has to be taken carefully.
-Finally, the next religion with the highest divorce rate is Christianism which is not so surprising. Unlike in Catholic Church where marriage is a sacred union, the Church of England has a more open point of view on divorce (which can be related to the history of Henri VIII divorce). Not to mention that Europeans tend to be less and less committed or involved in religions.
+Finally, the next religion with the highest divorce rate is Christianism which is not so surprising. Unlike in Catholic Church where marriage is a sacred union, the Church of England has a more open point of view on divorce (which can be related to the historical divorce of Henri VIII). Not to mention that Europeans tend to be less and less committed and involved in religions.
 
 
 ## Age & Marriage
@@ -296,6 +304,7 @@ Contains information about the age of the observation (person) in years. This va
 For the purposes of this analysis, and to calculate the divorce rate by age, the clustered age groups were equally distibuted among the number of ages the group contains. (e.g the 70 through 74 age group was divided into 5 seperate age groups 70, 71, 72, 73, and 74 each inherenting the parent group's divorce rate).
 
 Exhibit 1: Density of un-modified age
+
 
 The chart below, depicts the density distribution of ages in the dataset before any modifications were applied. As expected, instances of the observations' ages are relatively equal among the dataset, which should ensure a fair representation of all age groups.
 ```{r}
@@ -404,6 +413,7 @@ t.test(male$prop, female$prop)
 An article on divorce rate by region piqued our interests (http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html). It lists the top 10 divorce hot spots and they are all coastal cities. The article states that the factors contributing to the high divorce rate in coastal regions are due to the high deprivation and possibly sheer boredoem in winter. In this paper we are keen to explore whether our data attests to the findings of that article. 
 
 Our data shows a significant peak in inner London which shows that the percentage of people in bad marriage (either divorced or separated) is much higher than elsewhere. This is the opposite to the aforementioned article. London is anything but a deprived and boring city. We would like to conduct a hypothesis testing to see (1) if region and marital status are independent, (2) if London has the highest divorce rate and (3) if so what the influencing factors are. The test we adopt here is chi-squared test to explore the correlations between region and marital status and t-test for testing of difference in divorce rates across regions. 
+
 
 The p-values are both less than 5% and it means that the we can reject the null hypothesis that region and marital status are independent. From the residuals of chi-squared test, we see that married couples are greatly underrepresented in Inner London, but divorced and separated couples are over represented. 
 
@@ -515,8 +525,14 @@ region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = me
 
 ### Dependent children
 
-When people get married they are often in love and happy, most married couples look forward parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage when they are young (Waite, Linda and Lee 1991); the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). One explanation for this is that experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
+When people get married they are often in love and happy, most married couples look forward parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage only when they are preschool-aged (Becker et al. 1977), as they grow older, their binding force in a marriage weakens; the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). 
 
+The birth of an infant often brings couples back together who would have otherwise divorced. Experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
+
+We are keen to explore if we observe the same pattern in our data (1) as the age of youngest child grows, the more likely the couple will get divorced/separated (2) the more children a couple have, the less likely they are to be divorced/separated. 
+
+
+Becker, Gary S., Elizabeth Landes, and Robert T. Michael. 1977. "An Economic Analysis of Marital Instability." Journal of Political Economy 85:1141-87.
 
 Waite, Linda J, and Lee A Lillard. 1991. Children and marital disruption. American Journal of Sociology 96(4):930–953. 
 
@@ -526,10 +542,21 @@ Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption
 
 
 ```{r}
-family_compo <- fd%>% select(dpcfamuk11, tenure, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+family_compo <- fd%>% select(youngest_child_age, dpcfamuk11, tenure, binary_marstat, binary_region_factor, scgpuk11c, children_class) 
+
+%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
 
-family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class) %>% filter(!is.na(children_class))%>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class, dpcfamuk11) %>% filter(!is.na(children_class))%>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+family_compo %>%filter(dpcfamuk11 != -9)%>% select(binary_marstat, tenure, binary_region_factor, children_class, dpcfamuk11) %>% filter(!is.na(dpcfamuk11))%>% group_by(children_class, dpcfamuk11)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = dpcfamuk11, y = divorce_rate, fill = children_class))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
+
+
+family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+
+family_compo %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(dpcfamuk11, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = dpcfamuk11, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Number of children in family and the youngest child age')
+
 
 ```
 
@@ -541,6 +568,16 @@ family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, bina
 
 family_compo %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
 ```
+
+
+## Dependent Children and Social Grade
+
+```{r}
+family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+
+family_compo %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
+```
+
 
 
 
