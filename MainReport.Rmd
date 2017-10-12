@@ -29,6 +29,8 @@ Since the dataset is very large and there are too many variables, we decided to 
 We can attach a table of all variables we examined here:
 
 
+
+
 # Methods 
 a really brief description of the R packages we used. We can load all our libraries in this page:
 ```{r result = "hide", message=FALSE}
@@ -49,6 +51,20 @@ fd <- filtered_data
 fd <- as.data.frame(fd)
 
 ```
+
+In our report we aim to explore how selected variables singularly and collectively affect the probability of an individual being divorced or separated. 
+
+In the first part of the report we explore the interactions between selected variables and divorce rate. The divorce rate is calculated as percentage of unhappy marriages over total marriages,
+$$(divorced + separated)/(married + samesex + divorced + separated)$$
+
+We include separated in our definition of unhappy marriage because sometimes people continue to stay in marriage for practical reasons such as cohabitating and tax benefits, but that is more form over substance and most separated couples end up in divorce. Our team is particularly interested in the factors that lower people's marriage satisfaction which eventually lead to divorce. 
+
+The variables we select include inherent characteristics of an individual such as age, ethinicity, religion and country of birth, characteristics an individual acquire such as social grade, highest qualification achieved, and disability and lastly external factors such as region and type of housing. 
+
+Exploratory statistics includes mostly plotting. Bar plots are used when we want to represent the divorce rates for different classes of each variable, for example highest qualification achieved ranges from no qualification to level 4 (university and above). When we want to explore the interactions between more than one variables, we use color to represent them on the graph or use a grid to lay multiple small scale plots next to each other in order to identify any difference in pattern. 
+
+Hypothesis testing is also used to test if the observed pattern is statistically significant. Chi-squared test is used to explore whether two categorical variables are independent. Correlation test is used for testing correlations between two samples. Since most of our variables are categorical and marital status is categorical, chi-squared test is the best choice in our analysis. T-test is used for testing of difference in divorce rates across classes of variables. We ust 5% significance level for all the hypothesis testing done in this research. If the p-value from the test is less than 5%, we can confidently reject the null hypothesis. 
+
 
 
 ```{r, echo = FALSE}
@@ -120,9 +136,7 @@ We can show a few correlation tests, chi-squre tests and graphs
 ## Region/Geography & Marriage
 An article on divorce rate by region piqued our interests (http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html). It lists the top 10 divorce hot spots and they are all coastal cities. The article states that the factors contributing to the high divorce rate in coastal regions are due to the high deprivation and possibly sheer boredoem in winter. In this paper we are keen to explore whether our data attests to the findings of that article. 
 
-Our data shows a significant peak in the percentage of people in bad marriage (either divorced or separated) in Inner London compared to elsewhere. This is the opposite to the aforementioned article. London is anything but a deprived and boring city. We would like to conduct a hypothesis testing to see (1) if region and marital status are independent, (2) if Inner London has the highest divorce rate and (3) if so what the influencing factors are. The test we adopt here is chi-squared test to explore the correlations between region and marital status and t-test for testing of difference in divorce rates across regions. 
-
-The p-values are both less than 5% and it means that the we can reject the null hypothesis that region and marital status are independent. From the residuals of chi-squared test, we see that married couples are greatly underrepresented in Inner London, but divorced and separated couples are over represented. 
+Our plot shows a significant peak in the percentage of people in bad marriage (either divorced or separated) in Inner London compared to elsewhere. This is the opposite to the aforementioned article. London is anything but a deprived and boring city. The hypothesis testing conducted further confirms that region and marital status are not independent, and particularly Inner London has a higher divorce rate than elsewhere. Inner London has a divorce rate of approximately 25.4%, higher than the average of 19.9% in UK. The difference is statistically significant. Our focus then shifts to explore the factors that are causing such high divorce rates in London. 
 
 ```{r, echo = FALSE}
 # select the data relevant for region
@@ -137,23 +151,16 @@ region_count<- region1 %>% select(marstat, region) %>% group_by(region, marstat)
 region1%>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate*100))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + labs( title = "Divorce rate by region", x = 'Region', y = 'Divorce rate (%)')
 ```
 
-```{r}
+```{r, echo = FALSE, eval = FALSE}
 # chi-squared test
 region_test <- region_count[,-1]
 rownames(region_test) <- as.data.frame(region_count)[,1]
 chi_region <- chisq.test(as.data.frame(region_test))
 chi_region
-
+round(chi_region$residuals, 3)
 ```
 
-Chi-squared test residuals on regional marital status analysis
-```{r}
-round(chi_region$residuals, 3)['Inner London',]
-```
-
-We further perform t-test to compare the divorce rate of Inner London and all the other regions. Inner London has a divorce rate of approximately 25.4%, higher than the average of 19.9% in UK. The difference is statistically significant. 
-
-```{r region_ttest, echo = FALSE}
+```{r region_ttest, echo = FALSE, eval=FALSE}
 t.test(fd$binary_marstat, fd$binary_marstat[fd$region == "Inner London"])
 ```
 
@@ -174,15 +181,24 @@ t.test(outside_london, fd$binary_marstat[fd$region == "Wales"])
 
 ```
 
-Could the place people choose to live affect their marriage satisfaction, or is it merely an artifact as a result of distributions of other influencing factors? We plot the divorce rates against other variables in our list and wrap them by region. If the variables have no impact, we should observe the same pattern across all regions, with London having a slightly higher divorce rate. 
+Could the region people choose to live affect their marriage satisfaction, or is it merely an artifact as a result of other influencing factors? We plot the divorce rates against other variables in our list and wrap them by region. If the variables have no impact, we should observe the same pattern across all regions, with London having a slightly higher divorce rate. 
 
-Findings: we observe a significantly high divorce rate for people aged 50 and above in Inner London, while Inner London is a very young city with mean age of residents at around 47, and median age 45 (population mean and median are both 52). We further break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group. The observation suggests a larger proportion of people aged 50 and above are divorced or separated in Inner London than elsewhere. 
+After looking at the relationship between divorce rate and education, social grade, hours worked per week, ethnicity, religion, housing type, number of children in the household, distance travelled to work and means of transport, we found no difference in patterns between Inner London and the rest. 
 
-According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women.  (https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/). 
+Interestingly we observe a significantly high divorce rate for people aged 50 and above in Inner London. We further break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group (19.6% for population and 32.8% for aged 50 and above living in Inner London) and is statistically significant. 
 
-Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/). A better economic security, and more social interactions with people are among them. More significanty observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. 
+We have two questions following this observation, firstly why are there so many people getting divorced after 50s and secondly why Inner London?
 
-There is no empirical study on divorce rates in different regions in UK, we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. We can conclude that there are more divorce and separated people living in London but not infer any causal relationship. Above all, London is the number one Tinder hotspots. 
+According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women. Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012). People getting more open-minded and receptive to divorce around them, higher economic independence, and more social interactions with people are among them. More significanty observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. Unfortunately information on order of marriages is abcent in our data. 
+
+There is no empirical study on divorce rates in different regions in UK, but we think the reasons mentioned above could all have contributed to the high divorce rates in Inner London. However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in Inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. We can conclude that there are more divorce and separated people living in London but not infer any causal relationship. Above all, London is the number one Tinder hotspots (thrillist.com, Nov 2015). 
+
+
+Office for National Statistics, July 2017 [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/]
+
+Susan L. Brown and I-Fen Lin 18 Oct 2012, [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/]
+
+https://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most
 
 
 ```{r region_vs_others, echo = FALSE, eval= FALSE}
@@ -207,27 +223,37 @@ fd %>% filter(!is.na(ethnicityew)) %>%group_by(region, ethnicityew) %>% summaris
 fd %>% filter(!is.na(religionew)) %>%group_by(region, religionew) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = religionew, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
 #divorce rate by tenure
-fd %>% filter(!is.na(tenure)) %>%group_by(region, tenure) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = tenure, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+fd %>% filter(!is.na(tenure)) %>%group_by(region, tenure) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + facet_wrap(~tenure)+ theme(axis.text.x = element_text(angle = 60, hjust = 1)) 
 
 #divorce rate by distance to work
 fd %>% filter(!is.na(wpzhome)) %>%group_by(region, wpzhome) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = wpzhome, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
-
 ```
 
-```{r region_vs_age}
-# divorce rate by age and wrapped by regions
-fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate * 100))+ geom_col() + facet_wrap(~region) + labs( title = "Divorce rate by region", x = 'Region', y = 'Divorce rate (%)')
+```{r region_graph_2agegroup}
+#divorce rate by region for aged below 50
+plot49 <- region1%>% filter(age <50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + labs( title = "Divorce rate by region (aged below 50)", x = 'Region', y = 'Divorce rate (%)')
+
+#divorce rate by region for aged 50 and above
+plot50 <- region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + labs( title = "Divorce rate by region (aged 50 and above)", x = 'Region', y = 'Divorce rate (%)')
+
+require(gridExtra)
+grid.arrange(plot49, plot50, ncol=2)
 ```
 
 ```{r, echo = FALSE, eval = FALSE}
+#t-test for difference in divorce rate in people aged above 50 across regions 
+above50 <- filter(fd, age >= 50)
+t.test(above50$binary_marstat, above50$binary_marstat[above50$region == "Inner London"])
+
+
+# divorce rate by age and wrapped by regions
+fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate * 100))+ geom_col() + facet_wrap(~region) + labs( title = "Divorce rate by region", x = 'Region', y = 'Divorce rate (%)')
+
+
 #distribution of age wrapped by region
 fd %>% filter(!is.na(age))%>% ggplot(aes(x = age))+ geom_histogram() + facet_wrap(~region)
 
-#divorce rate by region for aged below 50
-region1%>% filter(age <50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-#divorce rate by region for aged 50 and above
-region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 ```
 
 ### Dependent children
