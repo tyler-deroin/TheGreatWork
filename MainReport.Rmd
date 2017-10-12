@@ -233,6 +233,16 @@ family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_c
 ```
 
 
+## Dependent Children and Social Grade
+
+```{r}
+family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+
+family_compo %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
+```
+
+
+
 
 
 ## Health & Marriage
