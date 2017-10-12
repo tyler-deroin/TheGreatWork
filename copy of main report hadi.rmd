@@ -26,7 +26,7 @@ Exhibit 2: Divorce rate by age:
 
 The chart above shows the divorce rate (as defined in the introduction) for each of the 83 age groups (18 to 100). 
 The divorce rate for observations aged 18, 19, and 20 is significantly higher than observations in their 20's. The rationale for this observation is the scarcity (nominally) of married people who are 20 and less, which results in a large relative proportion of divorced people when compared to other age groups.
-The age with the highest divorce rate in the dataset is 48. This is likely due to the fact that younger people are less likely to be divorced, as those would be early-on in their marriages. Furthermore, older people have a greater chance of being deceased and of being remarried.
+The age with the highest divorce rate in the dataset is 48. This is likely due to the fact that younger people are less likely to be divorced, as those would be early-on in their marriages. Furthermore, older people have a greater chance of being being remarried.
 
 ```{r}
 
@@ -72,34 +72,14 @@ divorce_by_age$prop <- new_divorced$n / new_total_group$count * 100
 ggplot(data = divorce_by_age, aes(x = age, y = prop)) + geom_line()
 ```
 
-Exhibit 3: Density of modified age
-
-The chart below depicts the density distribution of ages in the modified dataset, wherein the single people in the dataset were excluded as these were irrelevant for our purposes. Furthermor, age groups below 22 were excluded as those were deemed to be outliers, and age groups of 70 and above were excluded as those were manually manipulated to give significance. This shows, as expected a much smoother curve, with characteristics of a bell curve (normal distribution).
-```{r}
-data3 <-  fd %>% filter(age > 22 & age < 70)
-ggplot(data = data3, aes(x = age)) + geom_density()
-```
-
-Exhibit 4: Divorce rate by age:
-
-The chart above shows the divorce rate (as defined in the introduction) for each of the 83 age groups (18 to 100). The divorce rate for observations aged 18, 19, and 20 is significantly higher than observations in their 20's. The rationale for this observation is the scarcity (in nominal terms) of married people who are 20 and less, which results in a large relative proportion of divorced people when compared to other age groups.
-```{r}
-#create new data.frame to calculate the divorce rate per age. This is done by dividing the count of divorced people from divorced data frame by the respective rows from the total group data frame 
-divorce_by_age <- data.frame(prop = c(1:83), age = new_divorced$age)
-divorce_by_age$prop <- rep(1, 83)
-divorce_by_age$prop <- new_divorced$n / new_total_group$count * 100
-
-ggplot(data = divorce_by_age, aes(x = age, y = prop)) + geom_line()
-```
-
-Exhibit 5: proportion of divorced people by age
+Exhibit 3: Proportion of divorced people by age
 
 The chart above shows the proportion of divorced people for each age group. The chart shows a curve resembling a normal distribution.
 ```{r}
 ggplot(data = new_divorced, aes(x = age, y = prop)) + geom_line()
 ```
 
-Exhibit 5: Divorce rate by age and sex
+Exhibit 4: Divorce rate by age and sex
 
 The chart below is an exhibit of divorce rates by age for each sex. The general trend presented is a consistintly higher divorce rate for women across all age groups. This seems to suggest that women are more likely to be divorced than men on average.
 A t test of mean divorce rate between men and women reveals a statistically significant difference between the mean divorce rate of men and women.
