@@ -615,7 +615,8 @@ Furthermore, similar findings are also published elsewhere. A report by Time (ht
 # Logistic Regression
 ##A comprehensive regression analysis of all correlated variables
 
-The variables presented thus far in this report are the variables hypothesised to have the greatest effect on a person's liklihood of being divorced in the sample. As the dependant variable in question is a dichotomous variable (divorced or not divorced), we built a logistic regression model and selected the variables discussed above as dependent variables. Our goal was to use the variables we examined to predict whether a person will be divorced. 
+###Method
+As the dependant variable in question is a dichotomous variable (divorced or not divorced), we chose to build a logistic regression model instead of a linear regression model. Then we selected the variables discussed above as dependent variables. The variables presented thus far in this report are the variables hypothesised to have the greatest effect on a person's liklihood of being divorced in the sample.  Our goal was to use the variables we examined to predict whether a person will be divorced. 
 
 Overall, we experimented with a total of 8 variables to find the best Logistic Regression Model:
 1. Social Grade
@@ -628,13 +629,13 @@ Overall, we experimented with a total of 8 variables to find the best Logistic R
 8. Whether the person lives in London
 
 The best fit was determined by adding and removing the variables above until the best combination of the aforementioned metrics was obtained.
+
 As a measure of the overall model's explanatory power, two main measures were use:
 1) c-statistic or AUC (area under ROC curve)
 2) The accuracy of the predictions above a certain threshold (the mean divorce rate for our purposes)
 
-In addition, we also examined the multicolinearity of our model to ensure its validity. 
+In addition, we also examined the multicolinearity of our model to ensure its validity. In order to understand how good our model is, we partitioned the original dataset into 70% training data and 30% test data. After we used the training data to train the model, we then used the test data to compare our models.
 
-In order to understand how good our model is, first we partitioned the original dataset into 70% training data and 30% test data. After we used the training data to train the model, we used the test data to compare our models.
 
 ```{r echo = FALSE}
 
@@ -759,6 +760,7 @@ Next, we calculate the model's accuracy by comparing it to the mean of the test 
 pred <- ifelse(predicted4 > mean(as.numeric(testData$separated)), 1, 0)
 mean(testData$separated == pred)
 ```
+
 ### Multicollinearity
 Finally, we examined the multicollinearity in the model by using the Variance Inflation Factor. According to the result below, all indicators are very close to 1 and well below 5. Therefore, all predictors within this particular logistic regression are not linearly related. We can safely conclude that the multicollinearity is very low and the model is valid.
 
@@ -772,6 +774,7 @@ vif(lin_mo4)
 ### Limitation
 Unfortunately, we recognize that our model does not outperform the base prediction because the mean divorce rate is about 21%. This means that if we predict all people are not divorced, we will yield a higher prediction result. We suspect that this result is a problem rooted in the original massive census dataset because there are a total of 121 variables, and we are likely to miss some potential drivers of the marital status.
 
+### Conclusion
 Nevertheless, our finding is still significant because we identified a few strong drivers to unhappy marriages. Among all variables we dicussed in this report, Social Grade, Education, Age, and Health are the most important factors for predicting if a person is likely to be divorced.  
 
 
