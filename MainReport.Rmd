@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 # Introduction
@@ -51,10 +51,8 @@ fd <- as.data.frame(fd)
 ```
 
 
-```{r, echo = FALSE, eval=FALSE}
+```{r, echo = FALSE}
 # changing the factor names 
-fd <- filtered_data
-fd <- as.data.frame(fd)
 fd[, 'region'] <- factor(fd[,'region'], levels = c(1, 2, 3, 4, 5, 6, 7,
                                                        8, 9, 10, 11), 
                            labels = c('North East', 'North West', 'Yorkshire and the Humber', 
@@ -99,7 +97,6 @@ fd[, 'tenure'] <- factor(fd[,'tenure'], levels = c(1, 2, 3, 4, 5),
 
 fd <- fd%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
-
 ```
 
 # Descriptive Statistics and Correlation Tests
@@ -127,9 +124,11 @@ The p-value is less than 5% and it means that the we can reject the null hypothe
 
 We use the data to plot a mosaic plot which essentially represents the residual table graphically. 
 
-```{r}
+```{r, echo = FALSE}
 # select the data relevant for region
 region1 <- dplyr:: select(fd, binary_marstat, age, aggdtwpew11g, region, marstat, transport, wpzhome, Highest_qualification, binary_region_factor, binary_region_num,hours, tenure)
+
+region_count<- region1 %>% select(marstat, region) %>% group_by(region, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count) %>% mutate(divorce_rate = (Divorced + Separated)/(Divorced + Married + Separated))
 
 # plot divorce rate for region
 region1%>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
@@ -145,10 +144,15 @@ round(chi_region$residuals, 3)
 
 We further perform t-test to compare the divorce rate of Inner London and all the other regions. Inner London has a divorce rate of approximately 25%, higher than the average of 20% across all regions. The difference is statistically significant. 
 
-```{r}
+
+```{r region_ttest, echo = FALSE}
+t.test(fd$binary_marstat, fd$binary_marstat[fd$region == "Inner London"])
+```
+
+```{r, echo = FALSE, eval = FALSE}
 #mean_London <- fdata$binary_marstat[fdata$region == "Inner London"]
 outside_london <- fd$binary_marstat[fd$region != "Inner London"]
-t.test(fd$binary_marstat, fd$binary_marstat[fd$region == "Inner London"])
+
 t.test(outside_london, fd$binary_marstat[fd$region == "North East"])
 t.test(outside_london, fd$binary_marstat[fd$region == "North West"])
 t.test(outside_london, fd$binary_marstat[fd$region == "Yorkshire and the Humber"])
@@ -197,24 +201,20 @@ fd %>% filter(!is.na(wpzhome)) %>%group_by(region, wpzhome) %>% summarise(divorc
 ```
 
 ```{r region_vs_age}
-
 fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate))+ geom_col() + facet_wrap(~region)
+```
 
+```{r, echo = FALSE, eval = FALSE}
 fd %>% filter(!is.na(age))%>% ggplot(aes(x = age))+ geom_histogram() + facet_wrap(~region)
 
 region1%>% filter(age <50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-
 region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
-
-
-
 ```
 
 ### Dependent children
 
-When people get married they are often in love and happy, most married couples look forward parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage when they are young (Waite, Linda and Lee 1991); the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). One explanation for this is that high degree of conflicts between married couples often place children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). 
-
+When people get married they are often in love and happy, most married couples look forward parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage when they are young (Waite, Linda and Lee 1991); the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). One explanation for this is that experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
 
 
 Waite, Linda J, and Lee A Lillard. 1991. Children and marital disruption. American Journal of Sociology 96(4):930–953. 
@@ -238,13 +238,7 @@ family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_c
 ## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
 #This should be made universal and not distinct to any one local machine
-
-url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
-filtered_data <- getURL(url)
-filtered_data <- read.csv(textConnection(filtered_data))
-
-fd <- filtered_data
-mine <- select(fd, X1, disability, marstat, binary_marstat)
+mine <- select(fd, disability, marstat, binary_marstat)
 
 mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
 mine$binary_marstat <- factor(mine$binary_marstat, levels = c(0,1), labels = c("married", "divorced"))
