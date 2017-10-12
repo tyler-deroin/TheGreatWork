@@ -667,7 +667,7 @@ census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/North
 ```
 
 
-```{r}
+```{r echo = FALSE, warning= = FALSE}
 lr <- select(census, caseno, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
 lr$separated <- lr$marstat
 lr <- lr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
@@ -749,6 +749,8 @@ predicted4 <- plogis(predict(lin_mo4, testData))
 #misClassError(testData$separated, predicted4)
 plotROC(testData$separated, predicted4)
 ```
+
+
 ### Accuracy
 Next, we calculate the model's accuracy by comparing it to the mean of the test dataset. The result indicates that the accuracy rate is 58.89%. The accuracy rate tells us how accurate our predicted result compared to the actual result is. Our model will get about 59 correct results within 100 examples. 
 
@@ -760,7 +762,7 @@ mean(testData$separated == pred)
 ### Multicollinearity
 Finally, we examined the multicollinearity in the model by using the Variance Inflation Factor. According to the result below, all indicators are very close to 1 and well below 5. Therefore, all predictors within this particular logistic regression are not linearly related. We can safely conclude that the multicollinearity is very low and the model is valid.
 
-```{r echo = FALSE}
+```{r echo = FALSE, warning = FALSE, message = FALSE}
 # check for multicollinearity
 library(car)
 vif(lin_mo4) 
