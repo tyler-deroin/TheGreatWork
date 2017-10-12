@@ -1,0 +1,30 @@
+---
+title: "Building dataset"
+author: "Tyler Deroin"
+date: "October 12, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(readr)
+isg_regionv2 <- read_csv("~/Imperial/Maths and Stats Foundations/isg_regionv2.csv")
+
+
+#master_dataset <- isg_regionv2
+
+filtered_dataset <- isg_regionv2 %>% filter(marstat != 1 & marstat != 6) %>% filter(age >= 18) %>% 
+  mutate(binary_marstat = ifelse(marstat <4, 1, 0)) %>% select( caseno, marstat, hlqupuk11, scgpuk11c, age, cobg, ethnicityew, religionew, transport, region, hours, aggdtwpew11g, wpzhome, disability, tenduk11, tenure, dpcfamuk11)
+
+
+age_data <- isg_regionv2 %>% select(age)
+
+
+write.csv(filtered_dataset, "C:/Users/Tyler Deroin/Documents/GitHub/TheGreatWork/data/filtered_dataset.csv")
+write.csv(age_data, "C:/Users/Tyler Deroin/Documents/GitHub/TheGreatWork/data/age_data.csv")
+```
+
