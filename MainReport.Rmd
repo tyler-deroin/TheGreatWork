@@ -89,23 +89,23 @@ myowndata$ethngrouped <- ifelse(myowndata$ethnicityew == "English/Welsh/Scottish
 
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message=FALSE}
 
 mydata_ethn <- myowndata %>% group_by(ethngrouped) %>% summarise(count = n()) 
 
 lbls <- paste(mydata_ethn$ethngrouped, mydata_ethn$count) 
 lbls <- paste(lbls,"%",sep="") 
-#pie(mydata_ethn$count, labels = mydata_ethn$ethngrouped, col=rainbow(length(lbls)), main="Pie chart of ethnicities")
+pie(mydata_ethn$count, labels = mydata_ethn$ethngrouped, col=rainbow(length(lbls)), main="Pie chart of ethnicities")
 
 mydata_relig <- myowndata %>% group_by(religionew) %>% summarise(count = n()) 
 
 lbls2 <- paste(mydata_relig$religionew, mydata_relig$count) 
 lbls2 <- paste(lbls,"%",sep="") 
-pie(mydata_relig$count, labels = mydata_relig$religionew, col=rainbow(length(lbls2)), main="Pie chart of religions") + pie(mydata_ethn$count, labels = mydata_ethn$ethngrouped, col=rainbow(length(lbls)), main="Pie chart of ethnicities")
+pie(mydata_relig$count, labels = mydata_relig$religionew, col=rainbow(length(lbls2)), main="Pie chart of religions")
 ```
 
 
-Our assumption is that divorce rate will be higher among white people who are generally considered having more 'liberal' values, and permissive laws for divorce. We also expect that the less commited people are toward monotheist religions, the more they are likely to get divorced.
+Our assumption is that divorce rate will be higher among white people who are generally considered having more liberal values, and permissive laws for divorce. We also expect that the less commited people are toward religion, the more they are likely to get divorced.
 
 
 ```{r, echo = FALSE}
@@ -133,17 +133,14 @@ Basic correlation tests between the marital status and the different variables (
 
 ### Ethnicities
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
 ethn <- myowndata %>% dplyr::select(binary_marstat, ethnicityew) %>% group_by(binary_marstat, ethnicityew) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(ethnicityew) %>% mutate(prop = count / sum(count))
 
-#ggplot(data=ethn) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity') + facet_wrap(~ ethnicityew)
 
 ethn_divorced = filter(ethn, binary_marstat == "Separated/Divorced")
 ethn_divorced <- ethn_divorced[order(ethn_divorced$prop),]
 
-#ggplot(data=ethn_divorced) + geom_bar(aes(x = reorder(ethnicityew, prop), y = prop), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Ethnicity')
-```
-```{r, echo = FALSE}
+
 # Grouping ethnicities
 
 ethn$ethngrouped <- ifelse(ethn$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | ethn$ethnicityew == "Irish" | ethn$ethnicityew == "Gypsy or Irish Traveller"| ethn$ethnicityew == "Other White", "White", 
@@ -151,7 +148,6 @@ ethn$ethngrouped <- ifelse(ethn$ethnicityew == "English/Welsh/Scottish/Northern 
                                         ifelse(ethn$ethnicityew == "African" | ethn$ethnicityew == "Caribbean"| ethn$ethnicityew == "Other Black", "Black", 
                                                ifelse(ethn$ethnicityew == "Arab", 'Arab', 
                                                       ifelse(ethn$ethnicityew == "Any other ethnic group", "Any other ethnic group", "Mix Group")))))
-
 
 
 
@@ -170,27 +166,11 @@ ggplot(data=ethngrouped_divorced) + geom_bar(aes(x = reorder(ethngrouped, prop),
 
 ```
 
-The divorce rate show us some insight that we expected. For example, Asian divorce rate is significantly lower that for White people. The divorce rate is also very high for a person of mixed ethnicities. This might be explained by the fact that a mixed couple requires a more considerable amount of adjustment, tolerance and understandings and is more likely to divorce (http://ftp.iza.org/dp5960.pdf). Parents' value about divorce may thus transmitted to the child.
-However, one unexpected result is that divorce rate are the highest among black people.
+The divorce rate shows us some insight that we expected. For example, Asian divorce rate is significantly lower that for White people. The divorce rate is also very high for a person of mixed ethnicities. This might be explained by the fact that a mixed couple requires a more considerable amount of culture adjustment and understandings, and is more likely to divorce. Parents' value about divorce may thus transmitted to the child.
+However, one more unexpected result is that divorce rate are the highest among black people. If this trends has been the subject of a lot of studies in the US (e.g. http://www.swaraylawoffice.com/2010/08/divorce-rate-amongst-african-immigrants/), they are quite scarce about UK. 
+It is commonly known that Black people are still strongly discriminated against in the US, with inequalities in wages, access to education and higher crime rate. But these do not explain entirely the high divorce rate among Black people in UK as we can see in the Education/Ethnicity cross checking, divorce rate is high among Black people no matter whar their education level is. 
+An other reason we can think about is the discrepancy between African and European culture. Women in Africa are inferior to men, and confine themselves to domestic role. In UK, the women have the same rights as men, both socially and economically, giving them more independance and possibly leading to frictions.
 
-Find article for uk or compare to us (http://www.swaraylawoffice.com/2010/08/divorce-rate-amongst-african-immigrants/)
-## Religion
-```{r, echo = FALSE}
-relig <- myowndata %>% dplyr::select(binary_marstat, religionew) %>% group_by(binary_marstat, religionew) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(religionew) %>% mutate(prop = count / sum(count))
-
-#ggplot(data=relig) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge()) + facet_wrap(~ religionew) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'religion')
-
-relig_divorced = filter(relig, binary_marstat == "Separated/Divorced")
-
-ggplot(data=relig_divorced) + geom_bar(aes(x = reorder(religionew, prop), y = prop, fill = religionew), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Religion')
-```
-
-```{r, echo = FALSE}
-myowndata %>% select(binary_marstat, religionew, ethngrouped) %>% group_by(religionew, ethngrouped) %>% summarise(count = n())%>% tidyr::spread(key = ethngrouped, value = count)
-```
-Cross-checking the religion and ethnicities variables, we can observe that the religion with the highest divorce rate are 'Other religion', 'No religion' or 'No stated', which show more liberal values.
-However Buddhist also have high divorce rate, probably due to its permissive point of view toward divorce (https://www.budsas.org/ebud/whatbudbeliev/237.htm).
-Finally, the next religion with the highest divorce rate is Christianism which is not very surprising. Indeed, even though marriage is a sacred union in the religion, Europeans tend to be less and less committed or involved in religions, and even christianism' strictness toward divorce is changing.
 
 
 ## Country of birth
@@ -227,17 +207,33 @@ cbgrouped_divorced = filter(cbgrouped, binary_marstat == "Separated/Divorced")
 ggplot(data=cbgrouped_divorced) + geom_bar(aes(x = reorder(cobggrouped, prop), y = prop, fill = cobggrouped), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Country of Birth')
 ```
 
-We can see that the pattern of the countries of birth has some similarities with the world divorce rate heatmap you can find following this link: http://i.imgur.com/dep7XIZ.png.
+The countries of birth tend to confirm the pattern we already found for ethnicities. 
+We can see that the trend of the countries of birth has some similarities with the world divorce ration heatmap you can find following this link: http://i.imgur.com/dep7XIZ.png.
 
 
 ```{r, echo = FALSE}
 #myowndata %>% select(binary_marstat, cobggrouped, ethngrouped) %>% group_by(cobggrouped, ethngrouped) %>% summarise(count = n())%>% tidyr::spread(key = ethngrouped, value = count)
 ```
  
-The countries of birth tend to confirm the pattern we already found for ethnicities.   
+ 
 
+## Religion
+```{r, echo = FALSE}
+relig <- myowndata %>% dplyr::select(binary_marstat, religionew) %>% group_by(binary_marstat, religionew) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(religionew) %>% mutate(prop = count / sum(count))
 
-https://www.bls.gov/opub/mlr/2013/article/marriage-and-divorce-patterns-by-gender-race-and-educational-attainment.htm
+#ggplot(data=relig) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge()) + facet_wrap(~ religionew) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'religion')
+
+relig_divorced = filter(relig, binary_marstat == "Separated/Divorced")
+
+ggplot(data=relig_divorced) + geom_bar(aes(x = reorder(religionew, prop), y = prop, fill = religionew), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Religion')
+```
+
+```{r, echo = FALSE}
+myowndata %>% select(binary_marstat, religionew, ethngrouped) %>% group_by(religionew, ethngrouped) %>% summarise(count = n()) %>% tidyr::spread(key = ethngrouped, value = count)
+```
+Cross-checking the religion and ethnicities variables, we can observe that the religions with the highest divorce rate are 'Other religion', 'No religion' or 'No stated', which might be a sign of more liberal values.
+Buddhists also have high divorce rate, probably due to its permissive point of view toward divorce (https://www.budsas.org/ebud/whatbudbeliev/237.htm). However, the ratio of Buddhists is very low, so their divorce rate has to be taken carefully.
+Finally, the next religion with the highest divorce rate is Christianism which is not so surprising. Unlike in Catholic Church where marriage is a sacred union, the Church of England has a more open point of view on divorce (which can be related to the history of Henri VIII divorce). Not to mention that Europeans tend to be less and less committed or involved in religions.
 
 
 ## Age & Marriage
