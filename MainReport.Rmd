@@ -51,31 +51,22 @@ We can show a few correlation tests, chi-squre tests and graphs
 
 ## Culture & Marriage
 
+It cannot be denied that the cultural package each person has, is a major factor in his conception of marriage, his expectations toward a relationship and his values about divorce. Thus, in this part, we examine the factors of Ethnicity, Religion and Country of birth to try to determine the effect it has on divorce rate. 
 
-Ethnicites/Religion/Countries 
-
-It cannot be denied that the cultural package each person has, is a major factor in his conception of marriage, his expectations toward a relationship and his values about divorce. Thus, in this part, we examine the factors of Ethnicity, Religion and Country of birth to try to determine the effect it has on divorce rate. Our assumption is that divorce rate will be higher among white people who are generally considered having more 'liberal' values, and permissive laws for divorce. e also expect that the less commited people are toward monotheist religions, the more they are likely to get divorced.
-
+These variables are distributed as the following pie charts show :
 
 ```{r, echo=FALSE, message = FALSE}
 # Importing Data
-url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
-filtered_data <- getURL(url)
-filtered_data <- read.csv(textConnection(filtered_data))
+#url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+
+setwd(dir= "/Users/christelleren/Desktop/Imperial/Pre-term/R - Maths and Statistics Fundations/Projet1")
+filtered_data <- read.csv(file="filtered data.csv", header=TRUE, sep=",")
+
+#filtered_data <- getURL(url)
+#filtered_data <- read.csv(textConnection(filtered_data))
 myowndata <- filtered_data[,c('marstat', 'binary_marstat', 'cobg', 'ethnicityew', 'religionew')]
+
 ```
-
-
-```{r, echo = FALSE}
-# Correlation tests
-cor.test(myowndata$religionew, myowndata$binary_marstat)
-
-cor.test(myowndata$ethnicityew, myowndata$binary_marstat)
-
-cor.test(myowndata$cobg, myowndata$binary_marstat)
-```
-
-
 
 ```{r, echo = FALSE}
 # Factoring Data
@@ -89,7 +80,43 @@ myowndata[, 'ethnicityew'] <- factor(myowndata[, 'ethnicityew'], levels = seq(1,
 myowndata[, 'religionew'] <- factor(myowndata[, 'religionew'], levels = seq(1,9), labels = c("No religion", "Christian", "Buddhist", "Hindu", "Jewish", "Muslim", "Sikh", "Other religion", "Not stated"))
 
 myowndata <- na.omit(myowndata)
+
+myowndata$ethngrouped <- ifelse(myowndata$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | myowndata$ethnicityew == "Irish" | myowndata$ethnicityew == "Gypsy or Irish Traveller"| myowndata$ethnicityew == "Other White", "White", 
+                                ifelse( myowndata$ethnicityew == "Indian" | myowndata$ethnicityew == "Pakistani"| myowndata$ethnicityew == "Bangladeshi" | myowndata$ethnicityew == "Chinese"| myowndata$ethnicityew == "Other Asian", "Asian", 
+                                        ifelse(myowndata$ethnicityew == "African" | myowndata$ethnicityew == "Caribbean"| myowndata$ethnicityew == "Other Black", "Black", 
+                                               ifelse(myowndata$ethnicityew == "Arab", 'Arab', 
+                                                      ifelse(myowndata$ethnicityew == "Any other ethnic group", "Any other", "Mix Group")))))
+
 ```
+
+```{r, echo = FALSE}
+
+mydata_ethn <- myowndata %>% group_by(ethngrouped) %>% summarise(count = n()) 
+
+lbls <- paste(mydata_ethn$ethngrouped, mydata_ethn$count) 
+lbls <- paste(lbls,"%",sep="") 
+#pie(mydata_ethn$count, labels = mydata_ethn$ethngrouped, col=rainbow(length(lbls)), main="Pie chart of ethnicities")
+
+mydata_relig <- myowndata %>% group_by(religionew) %>% summarise(count = n()) 
+
+lbls2 <- paste(mydata_relig$religionew, mydata_relig$count) 
+lbls2 <- paste(lbls,"%",sep="") 
+pie(mydata_relig$count, labels = mydata_relig$religionew, col=rainbow(length(lbls2)), main="Pie chart of religions") + pie(mydata_ethn$count, labels = mydata_ethn$ethngrouped, col=rainbow(length(lbls)), main="Pie chart of ethnicities")
+```
+
+
+Our assumption is that divorce rate will be higher among white people who are generally considered having more 'liberal' values, and permissive laws for divorce. We also expect that the less commited people are toward monotheist religions, the more they are likely to get divorced.
+
+
+```{r, echo = FALSE}
+# Correlation tests
+cor.test(filtered_data$religionew, filtered_data$binary_marstat)
+
+cor.test(filtered_data$ethnicityew, filtered_data$binary_marstat)
+
+cor.test(filtered_data$cobg, filtered_data$binary_marstat)
+```
+
 
 
 ```{r, echo = FALSE, eval=FALSE}
@@ -126,11 +153,7 @@ ethn$ethngrouped <- ifelse(ethn$ethnicityew == "English/Welsh/Scottish/Northern 
                                                       ifelse(ethn$ethnicityew == "Any other ethnic group", "Any other ethnic group", "Mix Group")))))
 
 
-myowndata$ethngrouped <- ifelse(myowndata$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | myowndata$ethnicityew == "Irish" | myowndata$ethnicityew == "Gypsy or Irish Traveller"| myowndata$ethnicityew == "Other White", "White", 
-                                ifelse( myowndata$ethnicityew == "Indian" | myowndata$ethnicityew == "Pakistani"| myowndata$ethnicityew == "Bangladeshi" | myowndata$ethnicityew == "Chinese"| myowndata$ethnicityew == "Other Asian", "Asian", 
-                                        ifelse(myowndata$ethnicityew == "African" | myowndata$ethnicityew == "Caribbean"| myowndata$ethnicityew == "Other Black", "Black", 
-                                               ifelse(myowndata$ethnicityew == "Arab", 'Arab', 
-                                                      ifelse(myowndata$ethnicityew == "Any other ethnic group", "Any other", "Mix Group")))))
+
 
 ```
 
