@@ -628,10 +628,9 @@ Overall, we experimented with a total of 8 variables to find the best Logistic R
 8. Whether the person lives in London
 
 The best fit was determined by adding and removing the variables above until the best combination of the aforementioned metrics was obtained.
-As a measure of the overall model's explanatory power, three main measures were use:
-1) Misclassification Rate
-2) c-statistic or AUC (area under ROC curve)
-3) The accuracy of the predictions above a certain threshold (the mean divorce rate for our purposes)
+As a measure of the overall model's explanatory power, two main measures were use:
+1) c-statistic or AUC (area under ROC curve)
+2) The accuracy of the predictions above a certain threshold (the mean divorce rate for our purposes)
 
 In addition, we also examined the multicolinearity of our model to ensure its validity. 
 
@@ -742,6 +741,7 @@ predicted5 <- predict(lin_mo5, testData, type = "response")
 ```
 Based on our analysis, the best model contains 4 variables: Social Grade, Education, Health, and Age. 
 
+### ROC Curve
 A close look on the ROC Curve can give us more insights. Shown by the sensitivity and 1-specifity index, the increase of the True positive Rate of our model is slightly faster than the increase of the false positive rate. Since the greater the AUC (Area Under the Curve) the better the predictive ability of the model, the AUC of our model 0.6105 indicates that our model is fair but not perfect. 
 ```{r echo = FALSE}
 lin_mo4 <- glm(separated ~ social_grade + education + disability + age , data = trainingData, family = binomial(link = "logit"))
@@ -749,6 +749,7 @@ predicted4 <- plogis(predict(lin_mo4, testData))
 #misClassError(testData$separated, predicted4)
 plotROC(testData$separated, predicted4)
 ```
+### Accuracy
 Next, we calculate the model's accuracy by comparing it to the mean of the test dataset. The result indicates that the accuracy rate is 58.89%. The accuracy rate tells us how accurate our predicted result compared to the actual result is. Our model will get about 59 correct results within 100 examples. 
 
 ```{r}
@@ -756,6 +757,7 @@ Next, we calculate the model's accuracy by comparing it to the mean of the test 
 pred <- ifelse(predicted4 > mean(as.numeric(testData$separated)), 1, 0)
 mean(testData$separated == pred)
 ```
+### Multicollinearity
 Finally, we examined the multicollinearity in the model by using the Variance Inflation Factor. According to the result below, all indicators are very close to 1 and well below 5. Therefore, all predictors within this particular logistic regression are not linearly related. We can safely conclude that the multicollinearity is very low and the model is valid.
 
 ```{r echo = FALSE}
@@ -765,6 +767,7 @@ vif(lin_mo4)
 # as long as all values are below 4, it is fine, no big deal
 ```
 
+### Limitation
 Unfortunately, we recognize that our model does not outperform the base prediction because the mean divorce rate is about 21%. This means that if we predict all people are not divorced, we will yield a higher prediction result. We suspect that this result is a problem rooted in the original massive census dataset because there are a total of 121 variables, and we are likely to miss some potential drivers of the marital status.
 
 Nevertheless, our finding is still significant because we identified a few strong drivers to unhappy marriages. Among all variables we dicussed in this report, Social Grade, Education, Age, and Health are the most important factors for predicting if a person is likely to be divorced.  
