@@ -1,9 +1,9 @@
 ---
 title: "Divorce Rate in 2011 United Kingdom"
 author: "Team M"
+
 date: "October 11, 2017"
 output: pdf_document
----
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -107,8 +107,187 @@ We can show a few correlation tests, chi-squre tests and graphs
 
 
 
-## Religion and Culture & Marriage
+## Culture & Marriage
 
+It cannot be denied that the cultural package each person has, is a major factor in his conception of marriage, his expectations toward a relationship and his values about divorce. Thus, in this part, we examine the factors of Ethnicity, Religion and Country of birth to try to determine the effect it has on divorce rate. 
+
+These variables are distributed as the following pie charts shows :
+
+```{r, echo=FALSE, message = FALSE}
+# Importing Data
+url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+filtered_data <- getURL(url)
+filtered_data <- read.csv(textConnection(filtered_data))
+myowndata <- filtered_data[,c('marstat', 'binary_marstat', 'cobg', 'ethnicityew', 'religionew')]
+
+```
+
+```{r, echo = FALSE}
+# Factoring Data
+
+myowndata[, 'cobg'] <- factor(myowndata[, 'cobg'], levels = seq(1,26), labels = c("England","Scotland", "Northern Ireland", "Wales", "United Kingdom not otherwise specified", "Ireland", "Germany", "Poland", "Other EU countries: Member countries in 2001", "Other EU countries: Accession countries 2001 to 2011", "Rest of Europe", "North Africa", "Central and Western Africa", "South and Eastern Africa", "Africa not otherwise specified", "Middle East", "Eastern Asia", "Southern Asia: Bangladesh", "Southern Asia: India", "Southern Asia: Pakistan", "Rest of Southern Asia", "South-East Asia", "Central Asia", "North America and the Caribbean", "Central and South America", "Antarctica, Oceania and other"))
+
+myowndata[, 'binary_marstat'] <- factor(myowndata[, 'binary_marstat'], levels = c(1,0), labels = c("Separated/Divorced","Married/In a relationship"))
+
+myowndata[, 'ethnicityew'] <- factor(myowndata[, 'ethnicityew'], levels = seq(1,18), labels = c("English/Welsh/Scottish/Northern Irish/British", "Irish", "Gypsy or Irish Traveller", "Other White", "Mixed/multiple ethnic group: White and Black Caribbean", "Mixed/multiple ethnic group: White and Black African", "Mixed/multiple ethnic group: White and Asian", "Mixed/multiple ethnic group: Other Mixed", "Indian", "Pakistani", "Bangladeshi", "Chinese", "Other Asian", "African", "Caribbean", "Other Black", "Arab", "Any other ethnic group"))
+
+myowndata[, 'religionew'] <- factor(myowndata[, 'religionew'], levels = seq(1,9), labels = c("No religion", "Christian", "Buddhist", "Hindu", "Jewish", "Muslim", "Sikh", "Other religion", "Not stated"))
+
+myowndata <- na.omit(myowndata)
+
+myowndata$ethngrouped <- ifelse(myowndata$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | myowndata$ethnicityew == "Irish" | myowndata$ethnicityew == "Gypsy or Irish Traveller"| myowndata$ethnicityew == "Other White", "White", 
+                                ifelse( myowndata$ethnicityew == "Indian" | myowndata$ethnicityew == "Pakistani"| myowndata$ethnicityew == "Bangladeshi" | myowndata$ethnicityew == "Chinese"| myowndata$ethnicityew == "Other Asian", "Asian", 
+                                        ifelse(myowndata$ethnicityew == "African" | myowndata$ethnicityew == "Caribbean"| myowndata$ethnicityew == "Other Black", "Black", 
+                                               ifelse(myowndata$ethnicityew == "Arab", 'Arab', 
+                                                      ifelse(myowndata$ethnicityew == "Any other ethnic group", "Any other", "Mix Group")))))
+
+```
+
+```{r, echo = FALSE, message=FALSE}
+
+mydata_ethn <- myowndata %>% group_by(ethngrouped) %>% summarise(count = n()) 
+
+lbls <- paste(mydata_ethn$ethngrouped, mydata_ethn$count) 
+lbls <- paste(lbls,"%",sep="") 
+pie(mydata_ethn$count, labels = mydata_ethn$ethngrouped, col=rainbow(length(lbls)), main="Pie chart of ethnicities")
+
+mydata_relig <- myowndata %>% group_by(religionew) %>% summarise(count = n()) 
+
+lbls2 <- paste(mydata_relig$religionew, mydata_relig$count) 
+lbls2 <- paste(lbls,"%",sep="") 
+pie(mydata_relig$count, labels = mydata_relig$religionew, col=rainbow(length(lbls2)), main="Pie chart of religions")
+```
+
+
+Our assumption is that divorce rate will be higher among white people who are generally considered having more liberal values, and permissive laws for divorce. We also expect that the less committed people are toward religion, the more they are likely to get divorced.
+
+
+```{r, echo = FALSE}
+# Correlation tests
+cor.test(filtered_data$religionew, filtered_data$binary_marstat)
+
+cor.test(filtered_data$ethnicityew, filtered_data$binary_marstat)
+
+cor.test(filtered_data$cobg, filtered_data$binary_marstat)
+```
+
+
+
+```{r, echo = FALSE, eval=FALSE}
+# Chi-Square Test
+
+chisq.test(myowndata$cobg, myowndata$binary_marstat)
+
+chisq.test(myowndata$ethnicityew, myowndata$binary_marstat)
+
+chisq.test(myowndata$religionew, myowndata$binary_marstat)
+```
+
+Basic correlation tests between the marital status and the different variables (religion, ethnicities, country of birth) indicate that there is a correlation, and there is a similar pattern between them. Our aim is to have more insight about it.
+
+### Ethnicities
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+ethn <- myowndata %>% dplyr::select(binary_marstat, ethnicityew) %>% group_by(binary_marstat, ethnicityew) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(ethnicityew) %>% mutate(prop = count / sum(count))
+
+
+ethn_divorced = filter(ethn, binary_marstat == "Separated/Divorced")
+ethn_divorced <- ethn_divorced[order(ethn_divorced$prop),]
+
+
+# Grouping ethnicities
+
+ethn$ethngrouped <- ifelse(ethn$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | ethn$ethnicityew == "Irish" | ethn$ethnicityew == "Gypsy or Irish Traveller"| ethn$ethnicityew == "Other White", "White", 
+                                ifelse( ethn$ethnicityew == "Indian" | ethn$ethnicityew == "Pakistani"| ethn$ethnicityew == "Bangladeshi" | ethn$ethnicityew == "Chinese"| ethn$ethnicityew == "Other Asian", "Asian", 
+                                        ifelse(ethn$ethnicityew == "African" | ethn$ethnicityew == "Caribbean"| ethn$ethnicityew == "Other Black", "Black", 
+                                               ifelse(ethn$ethnicityew == "Arab", 'Arab', 
+                                                      ifelse(ethn$ethnicityew == "Any other ethnic group", "Any other ethnic group", "Mix Group")))))
+
+
+
+```
+
+```{r, echo = FALSE, message=FALSE}
+ethngrouped <- ethn %>% dplyr::select(binary_marstat, ethngrouped, count) %>% group_by(ethngrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(ethngrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
+
+#ggplot(data=ethngrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity grouped') + facet_wrap(~ ethngrouped)
+
+#ggplot(data=ethngrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = reorder(ethngrouped, prop)), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity grouped') 
+
+ethngrouped_divorced = filter(ethngrouped, binary_marstat == "Separated/Divorced")
+
+ggplot(data=ethngrouped_divorced) + geom_bar(aes(x = reorder(ethngrouped, prop), y = prop, fill = ethngrouped), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'Divorce Rate per Ethnicity')
+
+```
+
+The divorce rate shows us some insight that we expected. For example, Asian divorce rate is significantly lower that for White people. The divorce rate is also very high for a person of mixed ethnicities. This might be explained by the fact that a mixed couple requires a more considerable amount of culture adjustment and understandings, and is more likely to divorce. Parents' value about divorce may thus transmitted to the child.
+However, one more unexpected result is that divorce rate is the highest among black people. If this trend has been the subject of a lot of studies in the US (e.g. http://www.swaraylawoffice.com/2010/08/divorce-rate-amongst-african-immigrants/), they are quite scarce about UK. 
+It is commonly known that Black people are still strongly discriminated against in the US, with inequalities in wages, access to education and higher crime rate. But these do not explain entirely the high divorce rate among Black people in UK as we can see in the Education/Ethnicity cross checking, divorce rate is high among Black people no matter what their education level is. 
+Another reason we can think about is the discrepancy between African and European culture. Women in Africa are inferior to men, and confine themselves to domestic role. In UK, the women have the same rights as men, both socially and economically, giving them more independence and possibly leading to frictions.
+
+
+
+## Country of birth
+
+```{r, echo = FALSE}
+cb <- myowndata %>% dplyr::select(binary_marstat, cobg) %>% group_by(binary_marstat, cobg) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(cobg) %>% mutate(prop = count / sum(count))
+```
+
+```{r, echo = FALSE}
+
+## Grouping countries of birth by area
+
+cb$cobggrouped <- ifelse(cb$cobg == "England" | cb$cobg == "Scotland"| cb$cobg == "Northern Ireland"  | cb$cobg =="Wales"  | cb$cobg =="United Kingdom not otherwise specified" , "UK", 
+                         ifelse(cb$cobg =="Ireland" | cb$cobg =="Germany"  | cb$cobg =="Poland"  | cb$cobg =="Other EU countries: Member countries in 2001"  | cb$cobg =="Other EU countries: Accession countries 2001 to 2011"  | cb$cobg =="Rest of Europe", "Europe",
+                                ifelse( cb$cobg == "Middle East" | cb$cobg == "Eastern Asia" | cb$cobg == "Southern Asia: Bangladesh" | cb$cobg == "Southern Asia: India" | cb$cobg == "Southern Asia: Pakistan" | cb$cobg == "Rest of Southern Asia" | cb$cobg == "South-East Asia" | cb$cobg == "Central Asia", "Middle East and Asia", 
+                                        ifelse(cb$cobg ==  "North Africa" | cb$cobg == "Central and Western Africa" | cb$cobg == "South and Eastern Africa" | cb$cobg == "Africa not otherwise specified", "Africa", 
+                                               ifelse(cb$cobg == 'North America and the Caribbean' | cb$cobg == 'Central and South America', 'The Americas and the Caribbean', 'Antarctica, Oceania and other')))))
+
+myowndata$cobggrouped <- ifelse(myowndata$cobg == "England" | myowndata$cobg == "Scotland"| myowndata$cobg == "Northern Ireland"  | myowndata$cobg =="Wales"  | myowndata$cobg =="United Kingdom not otherwise specified" , "UK", 
+                         ifelse(myowndata$cobg =="Ireland" | myowndata$cobg =="Germany"  | myowndata$cobg  =="Poland"  | myowndata$cobg  =="Other EU countries: Member countries in 2001"  | myowndata$cobg  =="Other EU countries: Accession countries 2001 to 2011"  | myowndata$cobg  =="Rest of Europe", "Europe",
+                                ifelse( myowndata$cobg  == "Middle East" | myowndata$cobg  == "Eastern Asia" | myowndata$cobg  == "Southern Asia: Bangladesh" | myowndata$cobg  == "Southern Asia: India" | myowndata$cobg  == "Southern Asia: Pakistan" | myowndata$cobg  == "Rest of Southern Asia" | myowndata$cobg  == "South-East Asia" | myowndata$cobg  == "Central Asia", "Middle East and Asia", 
+                                        ifelse(myowndata$cobg  ==  "North Africa" | myowndata$cobg  == "Central and Western Africa" | myowndata$cobg  == "South and Eastern Africa" | myowndata$cobg  == "Africa not otherwise specified", "Africa", 
+                                               ifelse(myowndata$cobg  == 'North America and the Caribbean' | myowndata$cobg  == 'Central and South America', 'The Americas and the Caribbean', 'Antarctica, Oceania (including Australasia) and other')))))
+
+```
+
+```{r, echo = FALSE, message=FALSE}
+cbgrouped <- cb %>% dplyr::select(binary_marstat, cobggrouped, count) %>% group_by(cobggrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(cobggrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
+
+#ggplot(data = cbgrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'countries of birth grouped') + facet_wrap(~ cobggrouped)
+
+cbgrouped_divorced = filter(cbgrouped, binary_marstat == "Separated/Divorced")
+
+ggplot(data=cbgrouped_divorced) + geom_bar(aes(x = reorder(cobggrouped, prop), y = prop, fill = cobggrouped), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Country of Birth')
+```
+
+The countries of birth tend to confirm the pattern we already found for ethnicities. 
+We can see that the trend of the countries of birth has some similarities with the world divorce ration heatmap you can find following this link: http://i.imgur.com/dep7XIZ.png.
+
+
+```{r, echo = FALSE}
+#myowndata %>% select(binary_marstat, cobggrouped, ethngrouped) %>% group_by(cobggrouped, ethngrouped) %>% summarise(count = n())%>% tidyr::spread(key = ethngrouped, value = count)
+```
+ 
+ 
+
+## Religion
+```{r, echo = FALSE}
+relig <- myowndata %>% dplyr::select(binary_marstat, religionew) %>% group_by(binary_marstat, religionew) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(religionew) %>% mutate(prop = count / sum(count))
+
+#ggplot(data=relig) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge()) + facet_wrap(~ religionew) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'religion')
+
+relig_divorced = filter(relig, binary_marstat == "Separated/Divorced")
+
+ggplot(data=relig_divorced) + geom_bar(aes(x = reorder(religionew, prop), y = prop, fill = religionew), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Religion')
+```
+
+```{r, echo = FALSE}
+myowndata %>% select(binary_marstat, religionew, ethngrouped) %>% group_by(religionew, ethngrouped) %>% summarise(count = n()) %>% tidyr::spread(key = ethngrouped, value = count)
+```
+Cross-checking the religion and ethnicities variables, we can observe that the religions with the highest divorce rate are 'Other religion', 'No religion' or 'No stated', which might be a sign of more liberal values.
+Buddhists also have high divorce rate, probably due to its permissive point of view toward divorce (https://www.budsas.org/ebud/whatbudbeliev/237.htm). However, the ratio of Buddhists is very low, so their divorce rate has to be taken carefully.
+Finally, the next religion with the highest divorce rate is Christianism which is not so surprising. Unlike in Catholic Church where marriage is a sacred union, the Church of England has a more open point of view on divorce (which can be related to the history of Henri VIII divorce). Not to mention that Europeans tend to be less and less committed or involved in religions.
 
 
 ## Age & Marriage
@@ -222,13 +401,11 @@ t.test(male$prop, female$prop)
 
 
 ## Region/Geography & Marriage
-An article on divorce rate by region piqued our interests (http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html). The article lists the top 10 divorce hot spots and they are all coastal cities. In this paper we are keen to explore whether our data attests to the findings of that article. 
+An article on divorce rate by region piqued our interests (http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html). It lists the top 10 divorce hot spots and they are all coastal cities. The article states that the factors contributing to the high divorce rate in coastal regions are due to the high deprivation and possibly sheer boredoem in winter. In this paper we are keen to explore whether our data attests to the findings of that article. 
 
-The data shows a significant peak in inner London which shows that the percentage of people in bad marriage (either divorced or separated) is much higher than elsewhere. We would like to conduct a hypothesis testing to see if region and marital status are independent. The test we adopt here is chi-squared test at 5% significance level because we are exploring the correlations between two categorical variables. 
+Our data shows a significant peak in inner London which shows that the percentage of people in bad marriage (either divorced or separated) is much higher than elsewhere. This is the opposite to the aforementioned article. London is anything but a deprived and boring city. We would like to conduct a hypothesis testing to see (1) if region and marital status are independent, (2) if London has the highest divorce rate and (3) if so what the influencing factors are. The test we adopt here is chi-squared test to explore the correlations between region and marital status and t-test for testing of difference in divorce rates across regions. 
 
-The p-value is less than 5% and it means that the we can reject the null hypothesis that region and marital status are independent. From the residuals of chi-squared test, we see that married couples are greatly underrepresented in Inner London, but divorced and separated couples are over represented. Interestingly Inner London has a very high proportion of same-sex couples. 
-
-We use the data to plot a mosaic plot which essentially represents the residual table graphically. 
+The p-values are both less than 5% and it means that the we can reject the null hypothesis that region and marital status are independent. From the residuals of chi-squared test, we see that married couples are greatly underrepresented in Inner London, but divorced and separated couples are over represented. 
 
 ```{r, echo = FALSE}
 # select the data relevant for region
@@ -236,20 +413,28 @@ region1 <- dplyr:: select(fd, binary_marstat, age, aggdtwpew11g, region, marstat
 
 region_count<- region1 %>% select(marstat, region) %>% group_by(region, marstat)%>% summarise(count = n())%>% tidyr::spread(key = marstat, value = count) %>% mutate(divorce_rate = (Divorced + Separated)/(Divorced + Married + Separated))
 
+```
+
+```{r region_plot, fig.width=3,fig.height=3}
 # plot divorce rate for region
 region1%>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
 
+```{r}
 # chi-squared test
 region_test <- region_count[,-1]
 rownames(region_test) <- as.data.frame(region_count)[,1]
 chi_region <- chisq.test(as.data.frame(region_test))
 chi_region
-round(chi_region$residuals, 3)
+
 ```
 
+Chi-squared test residuals on regional marital status analysis
+```{r}
+round(chi_region$residuals, 3)['Inner London',]
+```
 
 We further perform t-test to compare the divorce rate of Inner London and all the other regions. Inner London has a divorce rate of approximately 25%, higher than the average of 20% across all regions. The difference is statistically significant. 
-
 
 ```{r region_ttest, echo = FALSE}
 t.test(fd$binary_marstat, fd$binary_marstat[fd$region == "Inner London"])
@@ -272,49 +457,59 @@ t.test(outside_london, fd$binary_marstat[fd$region == "Wales"])
 
 ```
 
-The article aforementioned states that the factors contributing to the high divorce rate in coastal regions are due to the high deprivation and possibly sheer boredoem in winter. Our data shows otherwise. London is anything but a deprived and boring city. We doubt the place people choose to live could affect their marriage satisfaction, however it could be an artifact as a result of distributions of other influencing factors. We plot the divorce rates against other variables in our list and wrap them by region. If region has no impact, we should observe the same pattern across all regions, with London having a slightly higher divorce rate. 
+Could the place people choose to live affect their marriage satisfaction, or is it merely an artifact as a result of distributions of other influencing factors? We plot the divorce rates against other variables in our list and wrap them by region. If the variables have no impact, we should observe the same pattern across all regions, with London having a slightly higher divorce rate. 
 
-Findings: we observe a significantly high divorce rate for people aged 50 and above in Inner London. However Inner London is a very young city with mean age of residents at around 47, and median age 45 (population mean and median are both 52). To explore it further we break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group. The observation suggests a larger proportion of people aged 50 and above are divorced or separated in Inner London than elsewhere. 
+Findings: we observe a significantly high divorce rate for people aged 50 and above in Inner London, while inner London is a very young city with mean age of residents at around 47, and median age 45 (population mean and median are both 52). To explore it further we break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group. The observation suggests a larger proportion of people aged 50 and above are divorced or separated in Inner London than elsewhere. 
 
 According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women.  (https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/). 
 
-Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/). A better economic security, and more social interactions with people are among them. In their research, they found a positive association between full-time employment and divorce, but more pronounced among women; likewise for income and divorce for women. We replicated their research but couldn't find any significant difference between men and women in these associations. More significanty observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. 
+Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/). A better economic security, and more social interactions with people are among them. More significanty observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. 
 
-However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time living alone or cohabitating, without rushing into any marriage. 
+However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. Above all, London is the number one Tinder hotspots. 
 
 
 ```{r region_vs_others, echo = FALSE, eval= FALSE}
+# divorce rate by variables and wrapped by region
 
+#divorce rate by age 
 fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate))+ geom_col() + facet_wrap(~region)
 
+#divorce rate by children_class
 fd %>% filter(!is.na(children_class))%>% group_by(region, children_class) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
+#divorce rate by Highest_qualification
 fd %>% filter(!is.na(Highest_qualification) & Highest_qualification != 'Others') %>%group_by(region, Highest_qualification) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = Highest_qualification, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1)) 
 
-
+#divorce rate by hours worked
 fd %>% filter(!is.na(hours)) %>%group_by(region, hours) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = hours, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
+#divorce rate by ethnicity
 fd %>% filter(!is.na(ethnicityew)) %>%group_by(region, ethnicityew) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = ethnicityew, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
+#divorce rate by religion
 fd %>% filter(!is.na(religionew)) %>%group_by(region, religionew) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = religionew, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
-
+#divorce rate by tenure
 fd %>% filter(!is.na(tenure)) %>%group_by(region, tenure) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = tenure, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
-
+#divorce rate by distance to work
 fd %>% filter(!is.na(wpzhome)) %>%group_by(region, wpzhome) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = wpzhome, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
 ```
 
 ```{r region_vs_age}
+# divorce rate by age and wrapped by regions
 fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate))+ geom_col() + facet_wrap(~region)
 ```
 
 ```{r, echo = FALSE, eval = FALSE}
+#distribution of age wrapped by region
 fd %>% filter(!is.na(age))%>% ggplot(aes(x = age))+ geom_histogram() + facet_wrap(~region)
 
+#divorce rate by region for aged below 50
 region1%>% filter(age <50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
+#divorce rate by region for aged 50 and above
 region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 ```
 
@@ -353,7 +548,6 @@ family_compo %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor,
 
 ## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
-#This should be made universal and not distinct to any one local machine
 mine <- select(fd, disability, marstat, binary_marstat)
 
 mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
