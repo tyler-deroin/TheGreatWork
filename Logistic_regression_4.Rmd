@@ -1,0 +1,306 @@
+#Logistic regression
+```{r}
+library(readr)
+census <- read_csv("C:/Users/kk/Desktop/GroupProject/filtered_data.csv")
+library(dplyr)
+
+```
+
+
+```{r}
+lr <- select(census, caseno, marstat, hlqupuk11, scgpuk11c, religionew, age, region, disability)
+lr$separated <- lr$marstat
+lr <- lr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+lr <- lr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+lr <- lr %>% mutate(london = ifelse(region == 10, 1, 0))
+colnames(lr) <- c("ID", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
+#replace -9 with NA 
+lr <- lr %>% mutate_all(funs(replace(., . == -9, NA)))
+lr <- lr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion))
+dim(lr)
+
+```
+
+This code chunk creates separates the data and creates training and validation data
+
+```{r}
+##################Rongkai
+# Create training and validation dataset
+input_ones <- lr[which(lr$separated == 1), ]  # all 1's
+input_zeros <- lr[which(lr$separated == 0), ]  # all 0's
+set.seed(100)  # for repeatability of samples
+input_ones_training_rows <- sample(1:nrow(input_ones), 0.7*nrow(input_ones))  # 1's for training
+input_zeros_training_rows <- sample(1:nrow(input_zeros), 0.7*nrow(input_ones))  # 0's for training. Pick as many 0's as 1's
+training_ones <- input_ones[input_ones_training_rows, ]  
+training_zeros <- input_zeros[input_zeros_training_rows, ]
+trainingData <- rbind(training_ones, training_zeros)  # row bind the 1's and 0's 
+
+# Create Test Data
+test_ones <- input_ones[-input_ones_training_rows, ]
+test_zeros <- input_zeros[-input_zeros_training_rows, ]
+testData <- rbind(test_ones, test_zeros)  # row bind the 1's and 0's 
+```
+
+Instead of using only the predict function, I will add the plogis function to make predicted values 0 and 1 instead of log values ---Rongkai
+
+```{r}
+##########################Rongkai
+
+library(smbinning)
+library(InformationValue)
+# use training data to train the model
+lin_mo1 <- glm(separated ~ social_grade + education + religion + age + london, data = trainingData, family = binomial(link = "logit"))
+lin_mo2 <- glm(separated ~ social_grade + education + religion + age + london + disability, data = trainingData, family = binomial(link = "logit"))
+lin_mo3 <- glm(separated ~ social_grade, data = trainingData, family = binomial(link = "logit"))
+
+
+# create predicted values and un-log it.
+predicted1 <- plogis(predict(lin_mo1, testData))
+predicted2 <- plogis(predict(lin_mo2, testData))
+predicted3 <- plogis(predict(lin_mo3, testData))
+
+# check for multicollinearity
+library(car)
+vif(lin_mo1) 
+# as long as all values are below 4, it is fine, no big deal
+
+# check for misclassification error
+misClassError(testData$separated, predicted1)
+# 0.4311, It should be a value between 0 and 1, the lower the better
+misClassError(testData$separated, predicted2)
+
+
+library(stargazer)
+stargazer(list(lin_mo1,lin_mo2, lin_mo3),type = "text")
+```
+
+
+
+
+
+
+
+
+```{r}
+lin_mo <- glm(separated ~ social_grade + education + religion + age + london, data = census, family = binomial)
+
+summary(lin_mo)
+# Find the separated probability of the average prospect
+mean(lr$separated)
+
+prob <- predict(lin_mo, type = "response")
+
+# Predict a separation if probability of donation is greater than average
+pred_1 <- ifelse(prob > 0.2148, 1, 0)
+
+# Calculate the model's accuracy
+mean(lr$separated == pred_1)
+
+
+library(pROC)
+
+# Create a ROC curve
+ROC <- roc(lr$separated, prob)
+
+# Plot the ROC curve
+plot(ROC, col = "blue")
+
+# Calculate the area under the curve (AUC)
+auc(ROC)
+
+```
+
+
+```{r}
+library(readr)
+census <- read_csv("C:/Users/helen/Desktop/Imperial/Math_Stat/Group_project_R/filtered data.csv")
+View(census)
+library(dplyr)
+
+```
+
+```{r}
+lr <- select(census, caseno, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
+lr$separated <- lr$marstat
+lr <- lr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+lr <- lr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+lr <- lr %>% mutate(london = ifelse(region == 10, 1, 0))
+colnames(lr) <- c("ID", "disability", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
+#replace -9 with NA 
+lr <- lr %>% mutate_all(funs(replace(., . == -9, NA)))
+lr <- lr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion))
+dim(lr)
+
+```
+
+
+
+```{r}
+
+lin_mo <- glm(separated ~ social_grade + education + religion + age + london + disability, data = lr, family = binomial)
+
+summary(lin_mo)
+# Find the separated probability of the average prospect
+mean(lr$separated)
+
+prob <- predict(lin_mo, type = "response")
+
+# Predict a separation if probability of donation is greater than average
+pred_1 <- ifelse(prob > 0.2148, 1, 0)
+
+# Calculate the model's accuracy
+mean(lr$separated == pred_1)
+#mean = 0.587
+
+library(pROC)
+
+# Create a ROC curve
+ROC <- roc(lr$separated, prob)
+
+# Plot the ROC curve
+plot(ROC, col = "blue")
+
+# Calculate the area under the curve (AUC)
+auc(ROC)
+#auc = 0.61
+```
+
+Adding children 
+
+```{r}
+
+lrr <- select(census, caseno, dpcfamuk11, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
+lrr$separated <- lrr$marstat
+lrr <- lrr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+lrr <- lrr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+lrr <- lrr %>% mutate(london = ifelse(region == 10, 1, 0))
+lrr <- lrr %>% mutate(dpcfamuk11 = ifelse(dpcfamuk11==1, 0, ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 1, ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 2, ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 3, NA)))))
+colnames(lrr) <- c("ID", "children", "disability", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
+#replace -9 with NA 
+lrr <- lrr %>% mutate_all(funs(replace(., . == -9, NA)))
+lrr <- lrr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion), !is.na(children))
+dim(lrr)
+
+
+```
+
+```{r}
+lin_mo <- glm(separated ~ social_grade + education + religion + age + london + disability + children, data = lrr, family = binomial)
+
+summary(lin_mo)
+# Find the separated probability of the average prospect
+mean(lrr$separated)
+
+prob <- predict(lin_mo, type = "response")
+
+# Predict a separation if probability of donation is greater than average
+pred_1 <- ifelse(prob > 0.1437, 1, 0)
+
+# Calculate the model's accuracy
+mean(lrr$separated == pred_1)
+#mean = 0.57
+
+
+library(pROC)
+
+# Create a ROC curve
+ROC <- roc(lrr$separated, prob)
+
+# Plot the ROC curve
+plot(ROC, col = "blue")
+
+# Calculate the area under the curve (AUC)
+auc(ROC)
+#auc = 0.6
+
+###'adding children lowers the model predictive capacity, as NA's in the children variable have a divorce rate of 80% and excluding them lowers the overall divorce rate average by 7%
+```
+
+
+Adding ethnicity
+
+```{r}
+library(dplyr) # for easy filter/selection
+library(magrittr) # for the pipe operator
+library(ggplot2)
+
+census$ethnicityew <- factor(census$ethnicityew, levels = seq(1,18), labels = c("English/Welsh/Scottish/Northern Irish/British", 
+"Irish", 
+"Gypsy or Irish Traveller", 
+"Other White", 
+"Mixed/multiple ethnic group: White and Black Caribbean", 
+"Mixed/multiple ethnic group: White and Black African", 
+"Mixed/multiple ethnic group: White and Asian", 
+"Mixed/multiple ethnic group: Other Mixed", 
+"Indian", 
+"Pakistani", 
+"Bangladeshi", 
+"Chinese", 
+"Other Asian", 
+"African", 
+"Caribbean", 
+"Other Black", 
+"Arab", 
+"Any other ethnic group"))
+
+#1: white 2: Asian 3: black 4: Arab 5: other
+myowndata <- na.omit(myowndata)
+
+census$ethngrouped <- census$ethnicityew
+
+census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | census$ethnicityew == "Irish" | census$ethnicityew == "Gypsy or Irish Traveller"| census$ethnicityew == "Other White", 1, 
+                                ifelse( census$ethnicityew == "Indian" | census$ethnicityew == "Pakistani"| census$ethnicityew == "Bangladeshi" | census$ethnicityew == "Chinese"| census$ethnicityew == "Other Asian", 2, 
+                                        ifelse(census$ethnicityew == "African" | census$ethnicityew == "Caribbean"| census$ethnicityew == "Other Black", 3, 
+                                               ifelse(census$ethnicityew == "Arab", 4, 
+                                                      ifelse(census$ethnicityew == "other", "Any other ethnic group", 5)))))
+
+```
+
+Adding ethnicity
+
+```{r}
+
+lrr <- select(census, caseno, ethngrouped, dpcfamuk11, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
+lrr$separated <- lrr$marstat
+lrr <- lrr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+lrr <- lrr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+lrr <- lrr %>% mutate(london = ifelse(region == 10, 1, 0))
+lrr <- lrr %>% mutate(dpcfamuk11 = ifelse(dpcfamuk11==1, 0, ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 1, ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 2, ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 3, NA)))))
+colnames(lrr) <- c("ID", "ethnicity", "children", "disability", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
+#replace -9 with NA 
+lrr <- lrr %>% mutate_all(funs(replace(., . == -9, NA)))
+lrr <- lrr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion), !is.na(children))
+dim(lrr)
+
+```
+
+```{r}
+lin_mo <- glm(separated ~ social_grade + education + religion + age + london + disability + children + ethnicity, data = lrr, family = binomial)
+
+summary(lin_mo)
+# Find the separated probability of the average prospect
+mean(lrr$separated)
+
+prob <- predict(lin_mo, type = "response")
+
+# Predict a separation if probability of donation is greater than average
+pred_1 <- ifelse(prob > 0.1436, 1, 0)
+
+# Calculate the model's accuracy
+mean(lrr$separated == pred_1)
+#mean = 0.57
+
+
+library(pROC)
+
+# Create a ROC curve
+ROC <- roc(lrr$separated, prob)
+
+# Plot the ROC curve
+plot(ROC, col = "blue")
+
+# Calculate the area under the curve (AUC)
+auc(ROC)
+#auc = 0.6
+```
+
