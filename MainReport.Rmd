@@ -140,10 +140,6 @@ rownames(region_test) <- as.data.frame(region_count)[,1]
 chi_region <- chisq.test(as.data.frame(region_test))
 chi_region
 round(chi_region$residuals, 3)
-
-#Mosaicplot
-mosaicplot(region_test, shade = TRUE, las=2,
-           main = "marital status")
 ```
 
 
@@ -166,20 +162,15 @@ t.test(outside_london, fd$binary_marstat[fd$region == "Wales"])
 
 ```
 
-The article aforementioned states that the factors contributing to the high divorce rate in coastal regions are due to the high deprivation and possibly sheer boredoem in winter. Our data shows otherwise. London is anything but a deprived and boring city. What could have contributed to the different in findings? 
+The article aforementioned states that the factors contributing to the high divorce rate in coastal regions are due to the high deprivation and possibly sheer boredoem in winter. Our data shows otherwise. London is anything but a deprived and boring city. We doubt the place people choose to live could affect their marriage satisfaction, however it could be an artifact as a result of distributions of other influencing factors. We plot the divorce rates against other variables in our list and wrap them by region. If region has no impact, we should observe the same pattern across all regions, with London having a slightly higher divorce rate. 
 
-Secondly, we suspect there are other more salient influencing factors and this secton of our paper will explore that. We explore the variables by looking at how the divorce rates for these variables vary across region. We explored education, social grade, age, hours worked, number of children in family, tenure of dwelling, ethinicity, religion and transport. Other than age, the pattern is very similar across regions. We observe a significantly high divorce rate for people aged 50 and above in Inner London. However Inner London is a very young city with mean age of residents at around 47, and median age 45 (population mean and median are both 52). 
+Findings: we observe a significantly high divorce rate for people aged 50 and above in Inner London. However Inner London is a very young city with mean age of residents at around 47, and median age 45 (population mean and median are both 52). To explore it further we break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group. The observation suggests a larger proportion of people aged 50 and above are divorced or separated in Inner London than elsewhere. 
 
-We further break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see that any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group. The observation suggests a larger proportion of people aged 50 and above are divorced or separated in Inner London than elsewhere. 
+According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women.  (https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/). 
 
-According to this research by Susan L. Brown and I-Fen Lin (18 Oct 2012).  https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/
-Various factors contribute to the increasing divorce rate among older people. A better economic security, and more social interactions with people could have contributed to that as well. Or it is also possible that many people are in their second marriage in their 50s and 60s and high-order marriages are more likely to end up in divorces than first orders. Or it could also be possible that older people in Inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. 
+Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/). A better economic security, and more social interactions with people are among them. In their research, they found a positive association between full-time employment and divorce, but more pronounced among women; likewise for income and divorce for women. We replicated their research but couldn't find any significant difference between men and women in these associations. More significanty observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. 
 
-
-18 July 2017  By ONS Digital
-Office for National Statistics reported that while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women.  (https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/)
-
-
+However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time living alone or cohabitating, without rushing into any marriage. 
 
 
 ```{r region_vs_others, echo = FALSE, eval= FALSE}
@@ -216,9 +207,22 @@ region1%>% filter(age <50) %>% group_by(region) %>% summarise(divorce_rate = mea
 
 region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
+
+
 ```
 
-### Dependent children and tenure
+### Dependent children
+
+When people get married they are often in love and happy, most married couples look forward parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage when they are young (Waite, Linda and Lee 1991); the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). One explanation for this is that high degree of conflicts between married couples often place children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). 
+
+
+
+Waite, Linda J, and Lee A Lillard. 1991. Children and marital disruption. American Journal of Sociology 96(4):930–953. 
+
+Qi Xu1*, Jianning Yu2 and Zeqi Qiu3. 2015, The impact of children on divorce risk. Xu et al. The Journal of Chinese Sociology (2015) 2:1
+
+Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
+
 
 ```{r}
 family_compo <- fd%>% select(dpcfamuk11, tenure, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
