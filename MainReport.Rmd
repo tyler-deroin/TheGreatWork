@@ -1026,13 +1026,13 @@ t.test(outside_london, fd$binary_marstat[fd$region == "Wales"])
 
 Could the region people choose to live affect their marriage satisfaction, or is it merely an artifact as a result of other influencing factors? We plot the divorce rates against other variables in our list and wrap them by region. If the variables have no impact, we should observe the same pattern across all regions, with London having a slightly higher divorce rate. 
 
-After looking at the relationship between divorce rate and education, social grade, hours worked per week, ethnicity, religion, housing type, number of children in the household, distance travelled to work and means of transport, we found no difference in patterns between Inner London and the rest. 
+After looking at the relationship between divorce rate and education, social grade, hours worked per week, ethnicity, religion, housing type, number of children in the household, we found no difference in patterns between Inner London and the rest. 
 
 Interestingly we observe a significantly high divorce rate for people aged 50 and above in Inner London. We further break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group (19.6% for population and 32.8% for aged 50 and above living in Inner London) and is statistically significant. 
 
 We have two questions following this observation, firstly why are there so many people getting divorced after 50s and secondly why Inner London?
 
-According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women. Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012). People getting more open-minded and receptive to divorce around them, higher economic independence, and more social interactions with people are among them. More significanty observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. Unfortunately information on order of marriages is abcent in our data. 
+According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women. Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012). People getting more open-minded and receptive to divorce around them, higher economic independence, and more social interactions with people are among them. More significantly observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. Unfortunately information on order of marriages is abcent in our data. 
 
 There is no empirical study on divorce rates in different regions in UK, but we think the reasons mentioned above could all have contributed to the high divorce rates in Inner London. However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in Inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. We can conclude that there are more divorce and separated people living in London but not infer any causal relationship. Above all, London is the number one Tinder hotspots (thrillist.com, Nov 2015). 
 
@@ -1254,21 +1254,45 @@ Our findings will go here
 
 Main Github Repository: https://github.com/dlouhasha/TheGreatWork
 
-Becker, Gary S., Elizabeth Landes, and Robert T. Michael. 1977. "An Economic Analysis of Marital Instability." Journal of Political Economy 85:1141-87.
+Adam Isen, Betsey Stevenson (2010). Women's Education and Family Behavior: Trends in Marriage, Divorce and Fertility. *Nber Working Paper Series*, No.15725. Available from: [DOI: 10.3386/w15725] (Accessed on 11 October 2017)
 
-Waite, Linda J, and Lee A Lillard. 1991. Children and marital disruption. American Journal of Sociology 96(4):930–953. 
+Alexander Hagelüken, Suddeutsche Zeitung (2014) *Heiraten zementiert soziale Spaltung*, Available from: [http://www.sueddeutsche.de/wirtschaft/partnerwahl-und-ungleichheit-heiraten-zementiert-soziale-spaltung-1.1875581] (Accessed on 12 October 2017)
 
-Qi Xu1*, Jianning Yu2 and Zeqi Qiu3. 2015, The impact of children on divorce risk. Xu et al. The Journal of Chinese Sociology (2015) 2:1
+Anushka Asthana and Denis Campbell, The Guardian (2009) *US study says divorce is linked to age and education*. Available from: [https://www.theguardian.com/lifeandstyle/2009/sep/27/divorce-linked-to-age-education] (Accessed on 11 October 2017)
 
+Becker, Gary S., Elizabeth Landes, and Robert T. Michael (1977) An Economic Analysis of Marital Instability. *Journal of Political Economy*, 85:1141-87. 
 
 Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
 
-Office for National Statistics, July 2017 [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/]
+Chloe Pantazi, Thrillist (2015) *Where are the Tinder users trying to get laid the most?*. Available from:[thttps://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most] (Accessed on 12 October 2017)
 
-Susan L. Brown and I-Fen Lin 18 Oct 2012, [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/]
+Donna Ruane Morrisox and Mary Jo Coiro (1999) Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. *Journal of Marriage and the Family* 6(1), 626-637
 
-https://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most
+Hlavac, Marek (2015). stargazer: Well-Formatted Regression and Summary Statistics Tables. *R package version 5.2*. Available from:[http://CRAN.R-project.org/package=stargazer] (Accessed on 12 October 2017)
+ 
+Jan D. Andersen (2005) Financial Problems and Divorce - Do Demographic Characteristics Strengthen the Relationship?. *Journal f Divorce & Remarriage*, 43(1-2), 149-161. Available from: doi: 10.1300/J087v43n01_08 (Accessed on 12 October 2017)
 
+John Bingham and Ashley kirk, The Telegraph (2015), *Divorce rate at lowest level in 40 years after cohabitation revolution*. Available from: [http://www.telegraph.co.uk/news/uknews/12011714/Divorce-rate-at-lowest-level-in-40-years-after-cohabitation-revolution.html] (Accessed on 12 October 2017)
+
+NHS Digital (2014) *Statistics on Drugs Misuse: English, 2014* Available from: [http://digital.nhs.uk/catalogue/PUB15943] (Accessed on 11 October 2017)
+
+Office for National Statistics (2015) *Births by parents' characterisitics in England and Wales：2015*. Available from: [https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/livebirths/bulletins/birthsbyparentscharacteristicsinenglandandwales/2015] (Accessed on 12 October 2017)
+
+Office for National Statistics (2015) *Divorces in England and Wales: 2015 - Dissolutions and annulments of marriage by previous marital status, sex, age, fact proven and to whom granted*. Available from: [https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/divorce/bulletins/divorcesinenglandandwales/2015] (Accessed on 12 October 2017) 
+
+Office for National Statistics (2017) *Marriage and divorce on the rise at 65 and over*. Available from: [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/] (Accessed on 12 October 2017)
+
+Qi Xu, Jianning Yu and Zeqi Qiu (2015) The impact of children on divorce risk. *The Journal of Chinese Sociology*, 2(1). Available from: DOI 10.1186/s40711-015-0003-0 (Accessed on 12 October 2017)
+
+Susan L. Brown and I-Fen Lin (2012). The Gray Divorce Revolution: Rising Divorce Among Middle-Aged and Older Adults, 1990-2010. *The Journals of Gerontology*, 67(6), 731-741. Available from: doi: 10.1093/geronb/gbs089 (Accessed on 12 October 2017)
+
+Thomas E.Trail, Benjamin R. Karney (2012). What's (Not) Wrong With Low-Income Marriages. *Journal of Marriage and Family*, 74(3), 413-427. Available from: DOI: 10.1111/j.1741-3737.2012.00977.x (Accessed on 11 October 2017)
+
+U.K. - Daily Mail (2015) *Wish you weren't here: Top ten divorce hot spots across Britain are all by the sea - with Blackpool the worst place to live if you want a happy marriage*. Available from: [http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html]. (Accessed on 11 October 2017)
+
+Waite, Linda J, and Lee A Lillard (1991) Children and marital disruption. *American Journal of Sociology*, 96(4):930–953. 
+
+Wendy Wang, Pew Research Center (2015) *The link between a college education and a lasting marriage*. Available from: [http://www.pewresearch.org/fact-tank/2015/12/04/education-and-marriage/] (Accessed on 12 October 2017) 
 
 
 # Appendix
