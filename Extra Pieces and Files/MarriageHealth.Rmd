@@ -1,0 +1,49 @@
+---
+title: "HealthMarriage"
+output: html_document
+author: "Rongkai Sha"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Load Data
+
+```{r echo = FALSE}
+library(readr)
+filtered_data <- read_csv("C:/Users/kk/Desktop/GroupProject/filtered_data.csv")
+library(dplyr)
+library(ggplot2)
+fd <- filtered_data
+mine <- select(fd, X1, disability, marstat, binary_marstat)
+mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
+mine$binary_marstat <- factor(mine$binary_marstat, levels = c(0,1), labels = c("married", "divorced"))
+```
+
+Disability Univariate Analysis
+```{r}
+ggplot(mine,aes(disability))+geom_histogram(stat = "count")
+```
+
+Bivariate Analysis
+```{r}
+chisq.test(mine$binary_marstat,mine$disability)
+ggplot(mine, aes(disability, fill =binary_marstat))+geom_bar(position = "fill")
+ggplot(mine,aes(binary_marstat, fill = disability))+geom_bar(position = "fill")
+```
+Since the chi-squre test is significant, we can conclude that the two variables are not independent of each other. 
+
+```{r}
+
+mine2 <- select(fd, X1, disability, marstat, binary_marstat)
+mine2$disability <- factor(mine2$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
+mine2 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat, na.rm = TRUE))
+mine2 <- mine2[complete.cases(mine2),]
+ggplot(mine2, aes(disability, divorce_rate))+geom_bar(stat = "identity")
+mine2
+
+```
+
