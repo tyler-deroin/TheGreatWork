@@ -14,8 +14,20 @@ The census data calssified the social grades per groups. AB, C1, C2, DE. IT is e
 
 ```{r setup, include=FALSE}
 library(readr)
-census <- read_csv("C:/Users/helen/Desktop/Imperial/Math_Stat/Group_project_R/filtered data.csv")
-View(census)
+library(RCurl)
+library(foreign)
+
+url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+filtered_data <- getURL(url)
+filtered_data <- read.csv(textConnection(filtered_data))
+
+fd <- filtered_data
+fd <- as.data.frame(fd)
+
+
+
+census <- fd
+#View(census)
 library(dplyr)
 census$region <- factor(census$region, levels = c(1, 2, 3, 4, 5, 6, 7,
                                                        8, 9, 10, 11), 
@@ -213,7 +225,7 @@ census$religionew <- factor(census$religionew, levels = seq(1,9), labels = c("No
 
 ###################### Social grade per ethnicity##################
 #clean data 
-cen_rel <- select(census, marstat, caseno, hlqupuk11, scgpuk11c, religionew, ethngrouped)
+cen_rel <- select(census, marstat, caseno, hlqupuk11, scgpuk11c, religionew)
 cen_rel$separated <- cen_rel$marstat
 cen_rel <- cen_rel %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
 cen_rel <- cen_rel %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
@@ -335,7 +347,7 @@ relp  +
 
 ```{r}
 #clean data 
-cen_rel <- select(census, caseno, marstat, hlqupuk11, scgpuk11c, religionew, ethngrouped)
+cen_rel <- select(census, caseno, marstat, hlqupuk11, scgpuk11c, religionew)
 cen_rel$separated <- cen_rel$marstat
 cen_rel <- cen_rel %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
 cen_rel <- cen_rel %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
@@ -384,7 +396,7 @@ rp +
 
 #average white person christ 
 ```{r}
-cen_rel <- select(census, marstat, caseno, hlqupuk11, scgpuk11c, religionew, ethngrouped)
+cen_rel <- select(census, marstat, caseno, hlqupuk11, scgpuk11c, religionew)
 cen_rel$separated <- cen_rel$marstat
 cen_rel <- cen_rel %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
 cen_rel <- cen_rel %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))

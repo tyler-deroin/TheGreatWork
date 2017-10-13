@@ -26,7 +26,17 @@ Thanks to the
 library(readr)
 library(dplyr)
 library(ggplot2)
-census <- read_csv("C:/Users/helen/Desktop/Imperial/Math_Stat/Group_project_R/filtered data.csv")
+library(RCurl)
+library(foreign)
+
+url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+filtered_data <- getURL(url)
+filtered_data <- read.csv(textConnection(filtered_data))
+
+fd <- filtered_data
+fd <- as.data.frame(fd)
+
+census <- fd
 View(census)
 
 census$ethnicityew <- factor(census$ethnicityew, levels = seq(1,18), labels = c("English/Welsh/Scottish/Northern Irish/British", 

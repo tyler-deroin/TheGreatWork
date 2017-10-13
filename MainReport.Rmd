@@ -1,27 +1,29 @@
 ---
-title: "Divorce Rate in 2011 United Kingdom"
+title: "Divorce and its Causes in the United Kingdom"
 author: "Team M"
 
-date: "October 11, 2017"
-output: pdf_document
+date: "October 13, 2017"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 2
+---
+
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, messages = FALSE, warning = FALSE)
 ```
 
+
+\newpage
 # Introduction
+Marriage is viewed by many as an important social and sometimes religious life event for a majority of people.  It symbolizes and unites two individuals into a single-family unit of everlasting bliss. Tragically, for some marriages face the reality that they were not meant to last and either officially through divorce or unofficially through separation. Since the United Kingdom divorce rate hit its peak in 2003, it has steadily dropped to NUMBER HERE (Haines, 2017) and CITATION NUMBER.  This drop has been attributed to culture changes around cohabitation, "couples living together before getting married" (Bingham, 2015). 
 
-Marriage is such a big topic in human life and always a very strong predictor of people's life satisfaction and happiness level. However, not all marriages are eternal happy endings and a lot of them nowadays end in divorce. If we can understand the factors that influence the quality of marriage, we may be able to discover more preventive measures to help more people maintain a lifelong happy marriage.
-
-To answer this question, our group examined the 2011 UK Census data and limited our scope to the marital status of a sample of British people. 
-
-through descriptive and inferential statistics
-
-To clarify, we define divorce rate here as (total number of divorce or separated)/(total number of marriage). Thus, we exclude all people who have not yet married, and the people who end their marriages out of other reasons such as the other partner's death.  
+Despite the wonderful change in the overall divorce rate, there are still many new divorces and separations each year leading us to wonder what could still cause such a travesty. Our curiosity and ultimately investigation is to find the remaining factors still bringing about the decline and end of family units across the United Kingdom based on the 2011 Census data. 
 
 
 
-## Description
+# Description
 The dataset we examined is the 5% sample data of the 2011 UK Census. It contains 2,848,155 observations and 121 variables. Each observation represents a UK citizen
 Since the dataset is very large and there are too many variables, we decided to exclusively focus on the relationship between marital status (marstat) and other variables. In brief, we would like to examine the factors that may influence people's marriage and lead to higher divorce rate. Therefore, we selected a total of 17 variables that may be highly correlated with marital status.
 
@@ -29,17 +31,33 @@ Since the dataset is very large and there are too many variables, we decided to 
 We can attach a table of all variables we examined here:
 
 
+
+
 # Methods 
 a really brief description of the R packages we used. We can load all our libraries in this page:
-```{r result = "hide", message=FALSE}
+```{r, echo = TRUE, eval = FALSE, results='hide', messages = FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
+library(gridExtra)
 library(stargazer)
 library(readr)
 library(RCurl)
 library(foreign)
 
+```
 
+```{r, eval = TRUE, echo=FALSE}
+suppressPackageStartupMessages(library(dplyr, quietly=TRUE))
+library(ggplot2)
+suppressPackageStartupMessages(library(gridExtra, quietly=TRUE))
+suppressPackageStartupMessages(library(stargazer, quietly=TRUE))
+suppressPackageStartupMessages(library(readr, quietly=TRUE))
+suppressPackageStartupMessages(library(RCurl, quietly=TRUE))
+suppressPackageStartupMessages(library(foreign, quietly=TRUE))
+```
+
+
+```{r}
 # Load data
 url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
 filtered_data <- getURL(url)
@@ -49,6 +67,21 @@ fd <- filtered_data
 fd <- as.data.frame(fd)
 
 ```
+
+
+In our report we aim to explore how selected variables singularly and collectively affect the probability of an individual being divorced or separated. 
+
+In the first part of the report we explore the interactions between selected variables and divorce rate. The divorce rate is calculated as percentage of unhappy marriages over total marriages,
+$$(divorced + separated)/(married + samesex + divorced + separated)$$
+
+We include separated in our definition of unhappy marriage because sometimes people continue to stay in marriage for practical reasons such as cohabitating and tax benefits, but that is more form over substance and most separated couples end up in divorce. Our team is particularly interested in the factors that lower people's marriage satisfaction which eventually lead to divorce. 
+
+The variables we select include inherent characteristics of an individual such as age, ethinicity, religion and country of birth, characteristics an individual acquire such as social grade, highest qualification achieved, and disability and lastly external factors such as region and type of housing. 
+
+Exploratory statistics includes mostly plotting. Bar plots are used when we want to represent the divorce rates for different classes of each variable, for example highest qualification achieved ranges from no qualification to level 4 (university and above). When we want to explore the interactions between more than one variables, we use color to represent them on the graph or use a grid to lay multiple small scale plots next to each other in order to identify any difference in pattern. 
+
+Hypothesis testing is also used to test if the observed pattern is statistically significant. Chi-squared test is used to explore whether two categorical variables are independent. Correlation test is used for testing correlations between two samples. Since most of our variables are categorical and marital status is categorical, chi-squared test is the best choice in our analysis. T-test is used for testing of difference in divorce rates across classes of variables. We ust 5% significance level for all the hypothesis testing done in this research. If the p-value from the test is less than 5%, we can confidently reject the null hypothesis. 
+
 
 
 ```{r, echo = FALSE}
@@ -107,24 +140,632 @@ We can show a few correlation tests, chi-squre tests and graphs
 
 ## Social and Economic Status & Marriage 
 
+```{r}
+census <- filtered_data
+census$ethnicityew <- factor(census$ethnicityew, levels = seq(1,18), labels = c("English/Welsh/Scottish/Northern Irish/British", 
+"Irish", 
+"Gypsy or Irish Traveller", 
+"Other White", 
+"Mixed/multiple ethnic group: White and Black Caribbean", 
+"Mixed/multiple ethnic group: White and Black African", 
+"Mixed/multiple ethnic group: White and Asian", 
+"Mixed/multiple ethnic group: Other Mixed", 
+"Indian", 
+"Pakistani", 
+"Bangladeshi", 
+"Chinese", 
+"Other Asian", 
+"African", 
+"Caribbean", 
+"Other Black", 
+"Arab", 
+"Any other ethnic group"))
+
+#1: white 2: Asian 3: black 4: Arab 5: other
+
+census$ethngrouped <- census$ethnicityew
+
+census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | census$ethnicityew == "Irish" | census$ethnicityew == "Gypsy or Irish Traveller"| census$ethnicityew == "Other White", 1, 
+                                ifelse( census$ethnicityew == "Indian" | census$ethnicityew == "Pakistani"| census$ethnicityew == "Bangladeshi" | census$ethnicityew == "Chinese"| census$ethnicityew == "Other Asian", 2, 
+                                        ifelse(census$ethnicityew == "African" | census$ethnicityew == "Caribbean"| census$ethnicityew == "Other Black", 3, 
+                                               ifelse(census$ethnicityew == "Arab", 4, 
+                                                      ifelse(census$ethnicityew == "other", "Any other ethnic group", 5)))))
 
 
-## Culture & Marriage
+census$religionew <- factor(census$religionew, levels = seq(1,9), labels = c("No religion", 
+"Christian", 
+"Buddhist", 
+"Hindu", 
+"Jewish", 
+"Muslim", 
+"Sikh", 
+"Other religion", 
+"Not stated"))
 
+cen <- select(census, caseno, marstat, hlqupuk11, scgpuk11c)
+cen$separated <- cen$marstat
+cen <- cen %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+cen <- cen %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+colnames(cen) <- c("ID", "marstat", "education", "social_grade", "separated")
+#replace -9 with NA 
+cen_f <- cen %>% mutate_all(funs(replace(., . == -9, NA)))
+cen_f <- cen_f %>% filter(!is.na(social_grade), !is.na(education), !(education == 16))
+dim(cen_f)
+
+```
+
+
+After filtering out people whose education level cannot be interpretated and filtering out missing values 1.684.636 observations are left. 
+The distribution between social grades is alike.
+Education on the other hand has as significant underrepresentation of participants that absolved an apprenticeship. They account for less than 4 % of the surveyed participants . This should be kept in mind when interpreting divorcerates in the apprenticeship group.
+
+
+Between education and social grade is a middle strong linear correlation. The higher the education level the higher the social grade.  Still it is insightful to look at both variables alone and combined, as they give different insights.
+```{r}
+#quick look at distributions
+table(cen_f$separated)
+addmargins(prop.table(table(cen_f$separated)))
+table(cen_f$education)
+prop.table(table(cen_f$education))
+```
+
+
+```{r}
+#correlate independend variables 
+social_plot <- ggplot(cen_f, aes(x = factor(education), y = social_grade))
+social_plot +
+  geom_histogram(stat = "summary", fun.y = "mean", fill = "cadetblue3") +
+  xlab ("Education level") +
+  ylab("Average social Grade (1:highest 4: lowest)") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+cen_f %>% group_by(education) %>% summarise(n = n(), mean_grade = mean(social_grade, na.rm = TRUE))
+
+#Spearmans ran correlation coefficient (cor between two comparative variables)
+cor(cen_f$social_grade, cen_f$education, method = "spearman", use="p")
+
+```
+
+
+
+```{r, echo=FALSE}
+
+#Plot divorce rate per social grade
+
+educ <- cen_f %>% group_by(education) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100)
+
+soclass <- cen_f %>% filter(!is.na(social_grade)) %>% group_by(social_grade) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100)
+
+soclass_plot <- ggplot(soclass, aes(x = factor(social_grade), y = rel_div))
+soclass_plot  +
+  geom_col(fill  = "cadetblue3") +
+  xlab("Social grade") +
+  ylab("Divorce rate in percent") +
+  scale_x_discrete(labels = c("1" = "AB", "2" = "C1", "3" = "C2", "4" = "DE")) +
+  scale_y_continuous(limits = c(0, 33), breaks = seq(0, 33, 5))
+
+```
+
+
+For social grade the finding match the underlying hypothesis fundamentally. 
+Social grade is directly connected to living standarts.Society holds the common belief that money is the root of all marriage problems. Nevertheless, there a few studies supporting this theory and many contradicting it (Andersen, 2008).
+http://www.tandfonline.com/doi/abs/10.1300/J087v43n01_08  According to the UK census data, this assumption seems to prove true: the lowest social grade has an above average divorce rate of 33 % versus 13 % for the upper and middle class. Only between social grade C1 and C2 the pattern does not apply. C2 has a 4% lower divorce rate compared to C1. But still, both lie in the middle of AB and DE and are close to the total verage divorce rate of 21 %.
+
+To see if the social grade is a true indicator for divorce and not only related to the fact, that migrants, different religions or higher educated, who tend to have a lower divorce rate than the Britishs, are overrepresented in some social groups, the data was crosschecked with religion as well as ethnicity. 
+
+The exact same pattern, also with C1 being slightly higher than C2 holds across all religions, ethnicities and education levels. Therefore it can be conlcuded, that social grade has a direct influence on the divorcerate. Upper and middle class have a way lower probability of getting divorced than all other groups. 
+A meaningful factor is the higher income, which enables better housing, better healthcare, less stressful life, more security and therefore less severe problems affecting the average marriage. 
+Next to monetary problems, lower social groups tend to have a higher probability of drug and alcohol problem, one of the major reasons for divorce (NHS 2014; Trail and Karney, 2012). Additionally, earlier marriages, which will be explained in the education evaluation, are a burden for marriages.
+
+http://digital.nhs.uk/catalogue/PUB15943
+http://onlinelibrary.wiley.com/doi/10.1111/j.1741-3737.2012.00977.x/full
+
+Across all sociodemographic characteristics (religion, ethnicity, education levels) the lowest social grade always has a significantly higher divorce rate and the highest social grade the lowest divorce rate. Overall it can be concluded that social grade, which is highly correlated with income, is a strong driver for divorces. 
+The difference between social grade C1 and C2, which is as well constant across different sociodemographic groups, is a question for further research and could not be evaluated based on the census data. 
+
+
+## Education
+```{r}
+#plot distribution of divorce per education level
+
+#rel_div: percen_f_ft of divorce per education group
+edu_plot <- ggplot(educ, aes(x = factor(education)))
+edu_plot + 
+  geom_col(aes(y = rel_div), fill = "cadetblue3") +
+  geom_blank() +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, 3)) +
+  ggtitle("Divorce rate per education level") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+The graph clearly confirms our expetations: the higher educated the lower the divorce rate. As can be seen, the difference in divorce rate between no degree and a university degree is about 10%. 
+People with no education have a divorce rate of 28 %, univeristy graduates 17 %. People with a school education approach the mean divorce rate of 21 % the higher their school degree is. 
+
+A reason for the negative correlation directly linked to education, is that higher educated people marry later than less educated people. A reason for  marrying later the higher educated someone is, is that the education lasts longer and therefore "adult life" and a stable lifestyle starts later. More educated people tend to focus more on their career in their joung ages.  Especially for women, a higher education results in a higher independence which lowers her feeling of need for getting married early (Isen, 2010).
+Additionally, higher educated people are in a relatioship and live together longer time before getting married. Knowledge about the partner, expectations and security if both share the same ideas for the future grow with age  and experienced with each other.  https://www.theguardian.com/lifeandstyle/2009/sep/27/divorce-linked-to-age-education http://www.nber.org/papers/w15725.pdf
+Furthermore, being pregnant or having children is still a reason for early marriage which results in a higher divorce rate. As less educated women tend to have children when their younger, they marry earlier because of the child (Office for National Statistics, 2015).
+
+A result from the higher education is a better financial situation which lowerst the divorse rate, as seen in the social grade analysis. As 80% of the people marry in their own social category, the gap between income and education between different couples grow even stronger.
+
+http://www.sueddeutsche.de/wirtschaft/partnerwahl-und-ungleichheit-heiraten-zementiert-soziale-spaltung-1.1875581 (http://www.pewresearch.org/fact-tank/2015/12/04/education-and-marriage/)
+
+https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/livebirths/bulletins/birthsbyparentscharacteristicsinenglandandwales/2015
+
+By looking at the relation between divorce rate and education across different religions and ethnic groups, it can be seen that the negative correlation holds. Education therefore seems to be a driver for divorce independend of the religion and ethnicity.
+This strong pattern diminishes when looking at the highest degree in every social group. The negative correlation is still present, but as education is highly inequaly distributed among social grades, social grade acts as a confuncing variable.
+The strong pattern of a lower divorce rate in the social group AB is partly driven by the majority of the people belonging to this social class being higly educated 
+
+It can therefore be concluded that both, education and social grade, are strong driver of divorce.The unequally ditributed educaiton levels within social classes reinforce this effect. 
+The highest overall divorce rate of 34% is thus in the lowest social grade group for people with no education at all. 
+This effect is reinforced for black people in the lowest social grade with no education. Their divorce rate is 37% on average. With a divorce rate of only 6% highly educated Asians in the AB social group hold the lowest divorce rate. 
+
+The average british person is white, christian, belongs to the middle class and has a university degree has a average divorce rate of 12 %. 
+By only changing education (but keeping social class) the divorce rate ascends to 14.5 %.
+When looking for both education extremes in the lowest social class we get a divorce rate for university graduates of 24 % versus 35 % for non educated people. It can be seen by this, that social grade accounts for higher differences in divorce rate than education does. 
+
+
+```{r}
+#grouping ethnicity
+census$ethngrouped <- census$ethnicityew
+
+census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | census$ethnicityew == "Irish" | census$ethnicityew == "Gypsy or Irish Traveller"| census$ethnicityew == "Other White", 1, 
+                                ifelse( census$ethnicityew == "Indian" | census$ethnicityew == "Pakistani"| census$ethnicityew == "Bangladeshi" | census$ethnicityew == "Chinese"| census$ethnicityew == "Other Asian", 2, 
+                                        ifelse(census$ethnicityew == "African" | census$ethnicityew == "Caribbean"| census$ethnicityew == "Other Black", 3, 
+                                               ifelse(census$ethnicityew == "Arab", 4, 
+                                                      ifelse(census$ethnicityew == "other", "Any other ethnic group", 5)))))
+
+
+educ <- cen_f %>% group_by(education, social_grade) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) %>% mutate(sg = n/sum(n))
+
+#add seperation per social grade 
+
+edu_plot <- ggplot(educ, aes(x = factor(education), y = rel_div, fill = factor(social_grade)))
+edu_plot + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 35), breaks = seq(0, 35, 3)) +
+  ggtitle("Divorce rate per education level") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#plot with facet_grid per social grade 
+####
+edu_plot <- ggplot(educ, aes(x = factor(education), y = rel_div, fill = factor(social_grade)))
+edu_plot + 
+  geom_col(stat = "identity") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 35), breaks = seq(0, 35, 2.5)) +
+  ggtitle("Divorce rate per education level and social grade") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_grid(~social_grade)
+
+#plot education per social grade, no divorce rate
+edu_plot <- ggplot(educ, aes(x = factor(education), y =n, fill = factor(social_grade)))
+edu_plot + 
+  geom_col(stat = "identity") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  ggtitle("Divorce rate per education level and social grade") +
+  xlab ("Education level") +
+  ylab ("Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_grid(~social_grade)
+```
+
+
+
+
+```{r}
+educ <- cen_f %>% group_by(education, social_grade) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) %>% mutate(sg = n/sum(n))
+
+#add seperation per social grade 
+
+edu_plot <- ggplot(educ, aes(x = factor(education), y = rel_div, fill = factor(social_grade)))
+edu_plot + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 35), breaks = seq(0, 35, 3)) +
+  ggtitle("Divorce rate per education level") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#plot with facet_grid per social grade 
+####
+edu_plot <- ggplot(educ, aes(x = factor(education), y = rel_div, fill = factor(social_grade)))
+edu_plot + 
+  geom_col(stat = "identity") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 35), breaks = seq(0, 35, 2.5)) +
+  ggtitle("Divorce rate per education level and social grade") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_grid(~social_grade)
+```
+
+
+```{r}
+census$region <- factor(census$region, levels = c(1, 2, 3, 4, 5, 6, 7,
+                                                       8, 9, 10, 11), 
+                           labels = c('North East', 'North West', 'Yorkshire and the Humber', 
+                                      'East Midlands', 'West Midlands', 'East of England', 
+                                      'Inner London',
+                                      'Outer London', 'South East', 'South West', 'Wales'))
+cen <- select(census, caseno, marstat, hlqupuk11, scgpuk11c)
+cen$separated <- cen$marstat
+cen <- cen %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+cen <- cen %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+colnames(cen) <- c("ID", "marstat", "education", "social_grade", "separated")
+#replace -9 with NA 
+cen_f <- cen %>% mutate_all(funs(replace(., . == -9, NA)))
+cen_f <- cen_f %>% filter(!is.na(social_grade), !is.na(education), !(education == 16))
+dim(cen_f)
+
+```
+
+
+For education level "other" is a foreign degree and therefore not applicable and excluded. Attenteion when we look at immigration backround, as those people might be crossing. 
+
+Social grade: 
+1 AB (highest)
+2 C1
+3 C2
+4 DE (lowest)
+-9 were excluded as it represents "persons resident in a communal establishment OR persons aged under 16 OR persons aged over 64 OR student/schoolchild living away during term-time OR short-term migrant" (Attention when we match with other data which might include people over 64)
+
+After filtering out people whose education level cannot be interpretated and filtering out missing values 1.684.636 observations are left. 
+
+```{r}
+#quick look at distributions
+table(cen_f$separated)
+addmargins(prop.table(table(cen_f$separated)))
+table(cen_f$education)
+table(cen_f$social_grade)
+```
+```{r}
+#correlate independend variables 
+
+social_plot <- ggplot(cen_f, aes(x = factor(education), y = social_grade))
+social_plot +
+  geom_histogram(stat = "summary", fun.y = "mean", fill = "cadetblue3") +
+  xlab ("Education level") +
+  ylab("Average social Grade (1:highest 4: lowest)") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+cen_f %>% group_by(education) %>% summarise(n = n(), mean_grade = mean(social_grade, na.rm = TRUE))
+
+#Spearmans ran correlation coefficient (cor between two comparative variables)
+cor(cen_f$social_grade, cen_f$education, method = "spearman", use="p")
+
+```
+
+The data shows, that the higher the education, the higher the social grade. Exept for people who did an apprenticeship. they have a slighltly lower social grade than people with CSE/GCSE. 
+There is a middle strong linear correlation between social graed and education level. The higher the education level the higher the social grade. 
+
+
+```{r}
+educ <- cen_f %>% group_by(education) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100)
+
+#plot distribution of divorce per education level
+#rel_div: percen_f_ft of divorce per education group
+edu_plot <- ggplot(educ, aes(x = factor(education)))
+edu_plot + 
+  geom_col(aes(y = rel_div), fill = "cadetblue3") +
+  geom_blank() +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, 3)) +
+  ggtitle("Divorce rate per education level") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+#Divorce rate per social grade divided by education 
+
+educ <- cen_f %>% group_by(education, social_grade) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) %>% mutate(sg = n/sum(n))
+
+#add seperation per social grade 
+
+edu_plot <- ggplot(educ, aes(x = factor(education), y = rel_div, fill = factor(social_grade)))
+edu_plot + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 35), breaks = seq(0, 35, 3)) +
+  ggtitle("Divorce rate per education level") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#plot with facet_grid per social grade 
+####
+edu_plot <- ggplot(educ, aes(x = factor(education), y = rel_div, fill = factor(social_grade)))
+edu_plot + 
+  geom_col(stat = "identity") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 35), breaks = seq(0, 35, 2.5)) +
+  ggtitle("Divorce rate per education level and social grade") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_grid(~social_grade)
+  
+```
+
+
+```{r}
+soclass <- cen_f %>% filter(!is.na(social_grade)) %>% group_by(social_grade) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100)
+
+soclass_plot <- ggplot(soclass, aes(x = factor(social_grade), y = rel_div))
+soclass_plot  +
+  geom_col(fill  = "cadetblue3") +
+  xlab("Social grade") +
+  ylab("Divorce rate in percent") +
+  scale_x_discrete(labels = c("1" = "AB", "2" = "C1", "3" = "C2", "4" = "DE")) +
+  scale_y_continuous(limits = c(0, 33), breaks = seq(0, 33, 5))
+```
+
+```{r}
+#cen_r: data set with regions to cross check 
+cen_r <- select(census, caseno, marstat, hlqupuk11, scgpuk11c, region)
+
+cen_r$separated <- cen_r$marstat
+cen_r <- cen_r %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+cen_r <- cen_r %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+colnames(cen_r) <- c("ID", "marstat", "education", "social_grade", "region", "separated")
+#replace -9 with NA 
+cen_r <- cen_r %>% mutate_all(funs(replace(., . == -9, NA)))
+cen_r <- cen_r %>% filter(!is.na(social_grade), !is.na(education), !is.na(region), !(education == 16))
+dim(cen_f)
+
+```
+
+
+```{r}
+#Social grade education and region
+
+region <- cen_r %>% group_by(region, education, social_grade) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) %>% mutate(sg = n/sum(n))
+
+
+rp <- ggplot(region, aes(x = factor(education), y = rel_div, fill = factor(social_grade)))
+rp + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 45), breaks = seq(0, 45, 3)) +
+  ggtitle("Divorce rate per education level and region") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_wrap(~ region)
+```
+
+
+
+```{r}
+#social grade per ethnicity
+
+census$ethnicityew <- factor(census$ethnicityew, levels = seq(1,18), labels = c("English/Welsh/Scottish/Northern Irish/British", 
+"Irish", 
+"Gypsy or Irish Traveler", 
+"Other White", 
+"Mixed/multiple ethnic group: White and Black Caribbean", 
+"Mixed/multiple ethnic group: White and Black African", 
+"Mixed/multiple ethnic group: White and Asian", 
+"Mixed/multiple ethnic group: Other Mixed", 
+"Indian", 
+"Pakistani", 
+"Bangladeshi", 
+"Chinese", 
+"Other Asian", 
+"African", 
+"Caribbean", 
+"Other Black", 
+"Arab", 
+"Any other ethnic group"))
+
+
+
+#1: white 2: Asian 3: black 4: Arab 5: other
+
+
+###################### Social grade per ethnicity##################
+#clean data 
+cen_rel <- select(census, marstat, caseno, hlqupuk11, scgpuk11c, religionew, ethnicityew)
+cen_rel$separated <- cen_rel$marstat
+cen_rel <- cen_rel %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+cen_rel <- cen_rel %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+colnames(cen_rel) <- c("ID", "marstat", "education", "social_grade", "religion", "ethnicity", "separated")
+#replace -9 with NA 
+cen_rel <- cen_rel %>% mutate_all(funs(replace(., . == -9, NA)))
+cen_rel <- cen_rel %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion))
+
+#, !(religion == "Not stated"))
+dim(cen_rel)
+
+#sort data
+rel <- cen_rel %>% group_by(ethnicity, social_grade) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) %>% mutate(sg = n/sum(n))
+
+#plot education and social grade depending on religion
+
+rp <- ggplot(rel, aes(x = factor(social_grade), y = rel_div))
+rp + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 50), breaks = seq(0, 50, 3)) +
+  ggtitle("Divorce rate per ethnicity and social grade") +
+  xlab ("Social grade") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_wrap(~ ethnicity)
+
+```
+
+```{r}
+#Divorce rate per education level per ethnicity
+
+rel <- cen_rel %>% group_by(ethnicity, education) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) %>% mutate(sg = n/sum(n))
+
+#plot education and social grade depending on religion
+
+rp <- ggplot(rel, aes(x = factor(education), y = rel_div))
+rp + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 50), breaks = seq(0, 50, 3)) +
+  ggtitle("Divorce rate per ethnicity and education level") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_wrap(~ ethnicity)
+
+
+#1: white 2: Asian 3: black 4: Arab 5: other
+```
+
+
+
+```{r}
+#Education per religion
+
+
+
+#sort data
+rel <- cen_rel %>% group_by(religion, education) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) %>% mutate(sg = n/sum(n))
+
+#plot education and social grade depending on religion
+
+rp <- ggplot(rel, aes(x = factor(education), y = rel_div))
+rp + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 50), breaks = seq(0, 50, 3)) +
+  ggtitle("Divorce rate per religion and education") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_wrap(~ religion)
+```
+
+
+```{r}
+
+rp <- ggplot(rel, aes(x = factor(education), y = rel_div))
+rp + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 50), breaks = seq(0, 50, 3)) +
+  ggtitle("Divorce rate per education level") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_wrap(~ religion)
+
+```
+
+in the different religions the pattern of the divorce rate per education level differe a lot from the overall pattern. Where there is on overall a high divorce rate for people with no education, for the  muslims it is way more constant, and for Buddhists it follow a totaly different pattern. 
+
+
+```{r}
+#divorce rate per social grade and religion
+
+rel <- cen_rel %>% group_by(social_grade, religion) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) 
+
+rp <- ggplot(rel, aes(x = factor(social_grade), y = rel_div))
+rp + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_y_continuous(limits = c(0, 50), breaks = seq(0, 50, 3)) +
+  ggtitle("Divorce rate per social grade") +
+  xlab ("Social grade") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_wrap(~ religion)
+```
+
+```{r}
+reli <- cen_rel %>% group_by(religion) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) 
+
+
+relp <- ggplot(reli, aes(x = religion, y = rel_div))
+relp  +
+  geom_col(fill  = "cadetblue3") +
+  xlab("Religion") +
+  ylab("Divorce rate in percent") +
+  scale_y_continuous(limits = c(0, 40), breaks = seq(0, 40, 5)) +
+  ggtitle("Divorce rate per religion")
+
+```
+
+
+```{r}
+#education per religion (too small sample for less represented religions)
+  
+#sort data
+rel <- cen_rel %>% group_by(religion, education, social_grade) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) %>% mutate(sg = n/sum(n))
+
+#plot education and social grade depending on religion
+
+rp <- ggplot(rel, aes(x = factor(education), y = rel_div, fill = factor(social_grade)))
+rp + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 50), breaks = seq(0, 50, 3)) +
+  ggtitle("Divorce rate per education level") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_wrap(~ religion)
+```
+
+
+
+```{r}
+#social grade and education
+#divorce rate per social grade and education
+
+region <- cen_r %>% group_by(education, social_grade) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100) %>% mutate(sg = n/sum(n))
+
+
+rp <- ggplot(region, aes(x = factor(social_grade), y = rel_div))
+rp + 
+  geom_col(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels = c("10" = "none", "11" = "O levels / GCSE", "12" = "CSE / GCSE grade 1 / A", "13" = "apprenticeship", "14" = "A levels", "15" = "university degree")) +
+  scale_y_continuous(limits = c(0, 45), breaks = seq(0, 45, 3)) +
+  ggtitle("Divorce rate per education level and region") +
+  xlab ("Education level") +
+  ylab ("Divore rate in %") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_wrap(~ education)
+```
+
+
+
+```{r}
+#average white person christ 
+
+#sort data
+white <- cen_rel %>% filter(religion == "Christian", ethnicity ==1, social_grade == 4, education == 10) %>% summarise(n = n(), separated = sum(separated), rel_div = (separated / n)*100)
+
+```
+
+
+## Religion and Culture & Marriage
 It cannot be denied that the cultural package each person has, is a major factor in his conception of marriage, his expectations toward a relationship and his values about divorce. Thus, in this part, we examine the factors of Ethnicity, Religion and Country of birth to try to determine the effect it has on divorce rate. 
 
 These variables are distributed as the following pie charts show :
 
 ```{r, echo=FALSE, message = FALSE}
-# Importing Data
-#url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
-
-setwd(dir= "/Users/christelleren/Desktop/Imperial/Pre-term/R - Maths and Statistics Fundations/Projet1")
-filtered_data <- read.csv(file="filtered data.csv", header=TRUE, sep=",")
-
-#filtered_data <- getURL(url)
-#filtered_data <- read.csv(textConnection(filtered_data))
-myowndata <- filtered_data[,c('marstat', 'binary_marstat', 'cobg', 'ethnicityew', 'religionew')]
+myowndata <- fd %>% select(marstat, binary_marstat, cobg, ethnicityew, religionew)
 
 ```
 
@@ -170,11 +811,11 @@ Our assumption is that divorce rate will be higher among white people who are ge
 
 ```{r, echo = FALSE}
 # Correlation tests
-cor.test(filtered_data$religionew, filtered_data$binary_marstat)
+#cor.test(filtered_data$religionew, filtered_data$binary_marstat)
 
-cor.test(filtered_data$ethnicityew, filtered_data$binary_marstat)
+#cor.test(filtered_data$ethnicityew, filtered_data$binary_marstat)
 
-cor.test(filtered_data$cobg, filtered_data$binary_marstat)
+#cor.test(filtered_data$cobg, filtered_data$binary_marstat)
 ```
 
 
@@ -296,6 +937,7 @@ Buddhists also have high divorce rate, probably due to its permissive point of v
 Finally, the next religion with the highest divorce rate is Christianism which is not so surprising. Unlike in Catholic Church where marriage is a sacred union, the Church of England has a more open point of view on divorce (which can be related to the historical divorce of Henri VIII). Not to mention that Europeans tend to be less and less committed and involved in religions.
 
 
+
 ## Age & Marriage
 Contains information about the age of the observation (person) in years. This variable ranges from 0 to 90 and is treated as a continuous variable. Ages 70, 75, 80, and 85 are clustered into groups each ranging 5 years (i.e. 70 through 74, 75 through 79, etc...). Furthermore, the 90 age group conatins ages 90 and above.
 
@@ -303,21 +945,28 @@ For the purposes of this analysis, and to calculate the divorce rate by age, the
 
 Exhibit 1: Density of un-modified age
 
-
 The chart below, depicts the density distribution of ages in the dataset before any modifications were applied. As expected, instances of the observations' ages are relatively equal among the dataset, which should ensure a fair representation of all age groups.
 ```{r}
 #need to add in original dataset to show density of original age distribution
-ggplot(data = fd, aes(x = age)) + geom_density()
+ggplot(data = fd, aes(x = age)) + geom_density(fill = 'grey') + ylab("Density") + xlab("Age") + ggtitle("Density distribution of age")
 ```
+
 Exhibit 2: Divorce rate by age:
 
-The chart above shows the divorce rate (as defined in the introduction) for each of the 83 age groups (18 to 100). 
-The divorce rate for observations aged 18, 19, and 20 is significantly higher than observations in their 20's. The rationale for this observation is the scarcity (nominally) of married people who are 20 and less, which results in a large relative proportion of divorced people when compared to other age groups.
-The age with the highest divorce rate in the dataset is 48. This is likely due to the fact that younger people are less likely to be divorced, as those would be early-on in their marriages. Furthermore, older people have a greater chance of being deceased and of being remarried.
+The chart below shows the divorce rate (as defined in the introduction) for each of the 83 age groups (18 to 100). 
+
+The divorce rate for observations aged 18, 19, and 20 is significantly higher than observations in their 20's. The rationale for this observation is the scarcity (nominally) of married people who are 20 and less, which results in a large relative proportion of divorced people when compared to other age groups. The high divorce rate among young people can also be explained by the often painful and troubelsome reality of marriage. 
+https://www.theguardian.com/lifeandstyle/2014/dec/19/-sp-why-do-so-many-young-marriages-come-to-an-early-end
+
+The age with the highest divorce rate in the dataset is 48. Likely causes of this statistic are people who got married earlier in their lives and got divorced for reasons stated above, and now belong to this age group, or the shift in societal norms where staying in an un-happy marriage is no longer neccessary and where online dating and other activities are so readily available. 
+http://www.prince-evans.co.uk/2017/01/divorce-rate-highest-among-aged-40-49/
+
+This is further suported by the fact that younger people are less likely to be divorced, as those would be early-on in their marriages,while older people have a greater chance of being being remarried and thus will once again be classified as married according to the classifications in the UK census data. Additionally, although divorce rates for people above the age of 53 (Baby Boomers) are rising, this class of society generally has traditional values and beleif systems that consider marriage to be the norm. This, therefore, supports the idea that the marginal rate of divorce decreases above the age of 48. https://www.theguardian.com/lifeandstyle/2013/aug/06/divorces-rise-over-60s
+  
 
 ```{r}
 
-data2 <-  fd %>% filter(marstat == 2 | marstat == 3 | marstat == 4 | marstat == 5) %>% filter(age >= 18) %>% mutate(seperated = marstat) %>% mutate(seperated = replace(seperated, marstat!= 5 | marstat != 4, 0)) %>% mutate(seperated = replace(seperated, marstat == 5 | marstat == 4, 1))
+data2 <-  filtered_data %>% filter(marstat == 2 | marstat == 3 | marstat == 4 | marstat == 5) %>% filter(age >= 18) %>% mutate(seperated = marstat) %>% mutate(seperated = replace(seperated, marstat!= 5 | marstat != 4, 0)) %>% mutate(seperated = replace(seperated, marstat == 5 | marstat == 4, 1))
 #new dataframe containing the summarised count by age
 total_group <- data2 %>% dplyr::select(age, seperated) %>% group_by(age) %>% summarise(count = n())
 total_group_full <- total_group[1:52,]
@@ -356,64 +1005,42 @@ divorce_by_age <- data.frame(prop = c(1:83), age = new_divorced$age)
 divorce_by_age$prop <- rep(1, 83)
 divorce_by_age$prop <- new_divorced$n / new_total_group$count * 100
 
-ggplot(data = divorce_by_age, aes(x = age, y = prop)) + geom_line()
+ggplot(data = divorce_by_age, aes(x = age, y = prop)) + geom_line() + ylab("Divorce rate (%)") + xlab("Age") + ggtitle("Divorce rate by age")
 ```
 
-Exhibit 3: Density of modified age
-
-The chart below depicts the density distribution of ages in the modified dataset, wherein the single people in the dataset were excluded as these were irrelevant for our purposes. Furthermor, age groups below 22 were excluded as those were deemed to be outliers, and age groups of 70 and above were excluded as those were manually manipulated to give significance. This shows, as expected a much smoother curve, with characteristics of a bell curve (normal distribution).
-```{r}
-data3 <-  fd %>% filter(age > 22 & age < 70)
-ggplot(data = data3, aes(x = age)) + geom_density()
-```
-
-Exhibit 4: Divorce rate by age:
-
-The chart above shows the divorce rate (as defined in the introduction) for each of the 83 age groups (18 to 100). The divorce rate for observations aged 18, 19, and 20 is significantly higher than observations in their 20's. The rationale for this observation is the scarcity (in nominal terms) of married people who are 20 and less, which results in a large relative proportion of divorced people when compared to other age groups.
-```{r}
-#create new data.frame to calculate the divorce rate per age. This is done by dividing the count of divorced people from divorced data frame by the respective rows from the total group data frame 
-divorce_by_age <- data.frame(prop = c(1:83), age = new_divorced$age)
-divorce_by_age$prop <- rep(1, 83)
-divorce_by_age$prop <- new_divorced$n / new_total_group$count * 100
-
-ggplot(data = divorce_by_age, aes(x = age, y = prop)) + geom_line()
-```
-Exhibit 5: proportion of divorced people by age
+Exhibit 3: Proportion of divorced people by age
 
 The chart above shows the proportion of divorced people for each age group. The chart shows a curve resembling a normal distribution.
 ```{r}
-ggplot(data = new_divorced, aes(x = age, y = prop)) + geom_line()
+ggplot(data = new_divorced, aes(x = age, y = prop)) + geom_line() + ylab("Divorce rate (%)") + xlab("Age") + ggtitle("Proportion of divorced people by age")
 ```
-Exhibit 5: Divorce rate by age and sex
 
-The chart below is an exhibit of divorce rates by age for each sex. The general trend presented is a consistintly higher divorce rate for women across all age groups. This seems to suggest that women are more likely to be divorced than men on average.
-A t test of mean divorce rate between men and women reveals a statistically significant difference between the mean divorce rate of men and women.
+Exhibit 5: Divorce rate by age and social grade
+
+The following chart depicts the distribution of divorce rate by age per level of social class.
+From the data, it is apparent that the trend observed in the overall sample can also be observed when examining social classes, the divorce rate trends upwards from the lower ages and peaks in the late 40's, this trend then reverses with the divorce rate decreasing with age.
+
+It may be worth noting that while the general trend is consistent accross social classes, one inconsistency does seem to appear in the 18 age group. The people aged 18 in the "AB" social class have a much lower divorce rate of around 8% than the other social classes at more than 20%. This seems to suggest that at young ages, affluence and wealth might potentially provide a cushion for a married couple and alleviate the stresses of financial troubles, which play a big role in divorce.
+
+These findings provide support the notion that divorce rate distibution by age seems to behave similarly regardless of other variables. Further analysis may be required to assess the validity of this claim accross different variables.
+
+
 
 ```{r}
-data3 <-  data2 %>% filter(age > 22 & age < 70)
-total_group1 <- data3 %>% dplyr::select(age, seperated, sex) %>% group_by(age, sex) %>% summarise(count = n())
-divorce_by_age_bysex <- data.frame(age = total_group1$age)
-divorce_by_age_bysex$prop <- divorced_bysex$n / total_group1$count * 100
-divorce_by_age_bysex$sex <- divorced_bysex$sex
-divorce_by_age_bysex$sex <- factor(divorce_by_age_bysex$sex, levels = c(1,2), labels = c('Male', 'Female'))
-ggplot(data = divorce_by_age_bysex, aes(x = age, y = prop, fill = sex)) + geom_col(position = 'dodge') + ylab("%")
-
-male <- divorce_by_age_bysex %>% filter(sex == 'Male')
-female <- divorce_by_age_bysex %>% filter(sex == 'Female')
-t.test(male$prop, female$prop)
-
+#creating a new dataframe grouped by age social grade and divorced status
+data4 <- data2 %>% dplyr::select(age, scgpuk11c, seperated) %>% filter(scgpuk11c != -9) %>% filter(seperated == 1) %>% group_by(age, scgpuk11c, seperated) %>% summarise(n = n())
+data4_control <- data2 %>% dplyr::select(age, scgpuk11c) %>% filter(scgpuk11c != -9) %>% group_by(age, scgpuk11c) %>% summarise(n = n())
+data4$divorce_rate <- data4$n / data4_control$n * 100
+data4$scgpuk11c <- factor(data4$scgpuk11c, levels = c(1,2,3,4), labels = c("AB", "C1", "C2", "DE"))
+ggplot(data = data4, aes(x = age, y = divorce_rate)) + geom_col(position = 'dodge', colour = 'red') + facet_wrap(~ scgpuk11c) + ylab("Divorce rate (%)") + xlab("Age") + ggtitle("Divorce rate distibution by age per social grade")
 
 ```
-
 
 
 ## Region/Geography & Marriage
 An article on divorce rate by region piqued our interests (http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html). It lists the top 10 divorce hot spots and they are all coastal cities. The article states that the factors contributing to the high divorce rate in coastal regions are due to the high deprivation and possibly sheer boredoem in winter. In this paper we are keen to explore whether our data attests to the findings of that article. 
 
-Our data shows a significant peak in inner London which shows that the percentage of people in bad marriage (either divorced or separated) is much higher than elsewhere. This is the opposite to the aforementioned article. London is anything but a deprived and boring city. We would like to conduct a hypothesis testing to see (1) if region and marital status are independent, (2) if London has the highest divorce rate and (3) if so what the influencing factors are. The test we adopt here is chi-squared test to explore the correlations between region and marital status and t-test for testing of difference in divorce rates across regions. 
-
-
-The p-values are both less than 5% and it means that the we can reject the null hypothesis that region and marital status are independent. From the residuals of chi-squared test, we see that married couples are greatly underrepresented in Inner London, but divorced and separated couples are over represented. 
+Our plot shows a significant peak in the percentage of people in bad marriage (either divorced or separated) in Inner London compared to elsewhere. This is the opposite to the aforementioned article. London is anything but a deprived and boring city. The hypothesis testing conducted further confirms that region and marital status are not independent, and particularly Inner London has a higher divorce rate than elsewhere. Inner London has a divorce rate of approximately 25.4%, higher than the average of 19.9% in UK. The difference is statistically significant. Our focus then shifts to explore the factors that are causing such high divorce rates in London. 
 
 ```{r, echo = FALSE}
 # select the data relevant for region
@@ -425,26 +1052,19 @@ region_count<- region1 %>% select(marstat, region) %>% group_by(region, marstat)
 
 ```{r region_plot, fig.width=3,fig.height=3}
 # plot divorce rate for region
-region1%>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
+region1%>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate*100))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + labs( title = "Divorce rate by region", x = 'Region', y = 'Divorce rate (%)')
 ```
 
-```{r}
+```{r, echo = FALSE, eval = FALSE}
 # chi-squared test
 region_test <- region_count[,-1]
 rownames(region_test) <- as.data.frame(region_count)[,1]
 chi_region <- chisq.test(as.data.frame(region_test))
 chi_region
-
+round(chi_region$residuals, 3)
 ```
 
-Chi-squared test residuals on regional marital status analysis
-```{r}
-round(chi_region$residuals, 3)['Inner London',]
-```
-
-We further perform t-test to compare the divorce rate of Inner London and all the other regions. Inner London has a divorce rate of approximately 25%, higher than the average of 20% across all regions. The difference is statistically significant. 
-
-```{r region_ttest, echo = FALSE}
+```{r region_ttest, echo = FALSE, eval=FALSE}
 t.test(fd$binary_marstat, fd$binary_marstat[fd$region == "Inner London"])
 ```
 
@@ -465,15 +1085,24 @@ t.test(outside_london, fd$binary_marstat[fd$region == "Wales"])
 
 ```
 
-Could the place people choose to live affect their marriage satisfaction, or is it merely an artifact as a result of distributions of other influencing factors? We plot the divorce rates against other variables in our list and wrap them by region. If the variables have no impact, we should observe the same pattern across all regions, with London having a slightly higher divorce rate. 
+Could the region people choose to live affect their marriage satisfaction, or is it merely an artifact as a result of other influencing factors? We plot the divorce rates against other variables in our list and wrap them by region. If the variables have no impact, we should observe the same pattern across all regions, with London having a slightly higher divorce rate. 
 
-Findings: we observe a significantly high divorce rate for people aged 50 and above in Inner London, while inner London is a very young city with mean age of residents at around 47, and median age 45 (population mean and median are both 52). To explore it further we break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group. The observation suggests a larger proportion of people aged 50 and above are divorced or separated in Inner London than elsewhere. 
+After looking at the relationship between divorce rate and education, social grade, hours worked per week, ethnicity, religion, housing type, number of children in the household, distance travelled to work and means of transport, we found no difference in patterns between Inner London and the rest. 
 
-According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women.  (https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/). 
+Interestingly we observe a significantly high divorce rate for people aged 50 and above in Inner London. We further break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group (19.6% for population and 32.8% for aged 50 and above living in Inner London) and is statistically significant. 
 
-Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/). A better economic security, and more social interactions with people are among them. More significanty observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. 
+We have two questions following this observation, firstly why are there so many people getting divorced after 50s and secondly why Inner London?
 
-However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. Above all, London is the number one Tinder hotspots. 
+According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women. Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012). People getting more open-minded and receptive to divorce around them, higher economic independence, and more social interactions with people are among them. More significanty observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. Unfortunately information on order of marriages is abcent in our data. 
+
+There is no empirical study on divorce rates in different regions in UK, but we think the reasons mentioned above could all have contributed to the high divorce rates in Inner London. However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in Inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. We can conclude that there are more divorce and separated people living in London but not infer any causal relationship. Above all, London is the number one Tinder hotspots (thrillist.com, Nov 2015). 
+
+
+Office for National Statistics, July 2017 [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/]
+
+Susan L. Brown and I-Fen Lin 18 Oct 2012, [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/]
+
+https://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most
 
 
 ```{r region_vs_others, echo = FALSE, eval= FALSE}
@@ -498,34 +1127,44 @@ fd %>% filter(!is.na(ethnicityew)) %>%group_by(region, ethnicityew) %>% summaris
 fd %>% filter(!is.na(religionew)) %>%group_by(region, religionew) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = religionew, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
 
 #divorce rate by tenure
-fd %>% filter(!is.na(tenure)) %>%group_by(region, tenure) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = tenure, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+fd %>% filter(!is.na(tenure)) %>%group_by(region, tenure) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + facet_wrap(~tenure)+ theme(axis.text.x = element_text(angle = 60, hjust = 1)) 
 
 #divorce rate by distance to work
 fd %>% filter(!is.na(wpzhome)) %>%group_by(region, wpzhome) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = wpzhome, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
-
 ```
 
-```{r region_vs_age}
-# divorce rate by age and wrapped by regions
-fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate))+ geom_col() + facet_wrap(~region)
+```{r region_graph_2agegroup}
+#divorce rate by region for aged below 50
+plot49 <- region1%>% filter(age <50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + labs( title = "Divorce rate by region (aged below 50)", x = 'Region', y = 'Divorce rate (%)')
+
+#divorce rate by region for aged 50 and above
+plot50 <- region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + labs( title = "Divorce rate by region (aged 50 and above)", x = 'Region', y = 'Divorce rate (%)')
+
+require(gridExtra)
+grid.arrange(plot49, plot50, ncol=2)
 ```
 
 ```{r, echo = FALSE, eval = FALSE}
+#t-test for difference in divorce rate in people aged above 50 across regions 
+above50 <- filter(fd, age >= 50)
+t.test(above50$binary_marstat, above50$binary_marstat[above50$region == "Inner London"])
+
+
+# divorce rate by age and wrapped by regions
+fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate * 100))+ geom_col() + facet_wrap(~region) + labs( title = "Divorce rate by region", x = 'Region', y = 'Divorce rate (%)')
+
+
 #distribution of age wrapped by region
 fd %>% filter(!is.na(age))%>% ggplot(aes(x = age))+ geom_histogram() + facet_wrap(~region)
 
-#divorce rate by region for aged below 50
-region1%>% filter(age <50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-#divorce rate by region for aged 50 and above
-region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = region, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 ```
 
 ### Dependent children
 
-When people get married they are often in love and happy, most married couples look forward parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage only when they are preschool-aged (Becker et al. 1977), as they grow older, their binding force in a marriage weakens; the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). 
+When people get married they are often in love and happy, most married couples look forward to parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage only when they are preschool-aged (Becker et al. 1977), as they grow older, their binding force in a marriage weakens; the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). 
 
-The birth of an infant often brings couples back together who would have otherwise divorced. Experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
+The birth of an infant often brings couples back together who would have otherwise divorced. Experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Therefore married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
 
 We are keen to explore if we observe the same pattern in our data (1) as the age of youngest child grows, the more likely the couple will get divorced/separated (2) the more children a couple have, the less likely they are to be divorced/separated. 
 
@@ -538,27 +1177,6 @@ Qi Xu1*, Jianning Yu2 and Zeqi Qiu3. 2015, The impact of children on divorce ris
 
 Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
 
-
-```{r}
-family_compo <- fd%>% select(youngest_child_age, dpcfamuk11, tenure, binary_marstat, binary_region_factor, scgpuk11c, children_class) 
-
-%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
-
-
-family_compo %>% select(binary_marstat, tenure, binary_region_factor, children_class, dpcfamuk11) %>% filter(!is.na(children_class))%>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
-
-family_compo %>%filter(dpcfamuk11 != -9)%>% select(binary_marstat, tenure, binary_region_factor, children_class, dpcfamuk11) %>% filter(!is.na(dpcfamuk11))%>% group_by(children_class, dpcfamuk11)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = dpcfamuk11, y = divorce_rate, fill = children_class))+ geom_col() + theme(axis.text.x = element_text(angle = 60, hjust = 1))  
-
-
-
-family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
-
-family_compo %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(dpcfamuk11, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = dpcfamuk11, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Number of children in family and the youngest child age')
-
-
-```
-
-
 ## Dependent Children and Social Grade
 
 ```{r}
@@ -566,23 +1184,12 @@ family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, bina
 
 family_compo %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
 ```
-
-
-## Dependent Children and Social Grade
-
-```{r}
-family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
-
-family_compo %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
-```
-
-
-
 
 
 
 ## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
+#This should be made universal and not distinct to any one local machine
 mine <- select(fd, disability, marstat, binary_marstat)
 
 mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
@@ -605,26 +1212,169 @@ The graph shows that the less severe the long-term health problem, the less the 
 
 
 # Logistic Regression
+
 A comprehensive regression analysis of all correlated variables
 
-The variables presented thus far in this paper are the variables hypothesised to have the greatest effect on a person's likliness of being divorced in a certain society.
+Method
+As the dependant variable in question is a dichotomous variable (divorced or not divorced), we chose to build a logistic regression model instead of a linear regression model. Then we selected the variables discussed above as dependent variables. The variables presented thus far in this report are the variables hypothesised to have the greatest effect on a person's liklihood of being divorced in the sample.  Our goal was to use the variables we examined to predict whether a person will be divorced. 
 
-As the dependant variable in question is a dichotomous variable (divorced or not divorced), a logistic regression was performed where the divorced status is the dependant variable, and the variables mentioned above are the independant variables.
-
-A logistic model is used to predict the probability of a binary response based on a set of other variables.
-
-Regression formula:
-divorced status = intercept + b1age + b2education_level + b3number_of_children + b4religion + b5london_or_not +...
-
-
-As a measure of the overall model's explanatory powe, three main measures were use:
-1) Akaike Information Criterion 
-2) c-statistic or AUC (area under ROC curve)
-3) The accuracy of the predictions above a certain threshold (the mean divorce rate for our purposes)
+Overall, we experimented with a total of 8 variables to find the best Logistic Regression Model:
+1. Social Grade
+2. Education
+3. Age
+4. Religion
+5. Health
+6. Number of Children
+7. Ethnicity
+8. Whether the person lives in London
 
 The best fit was determined by adding and removing the variables above until the best combination of the aforementioned metrics was obtained.
 
-*insert model here*
+As a measure of the overall model's explanatory power, two main measures were use:
+1) c-statistic or AUC (area under ROC curve)
+2) The accuracy of the predictions above a certain threshold (the mean divorce rate for our purposes)
+
+In addition, we also examined the multicolinearity of our model to ensure its validity. In order to understand how good our model is, we partitioned the original dataset into 70% training data and 30% test data. After we used the training data to train the model, we then used the test data to compare our models.
+
+
+```{r echo = FALSE}
+
+census$ethnicityew <- factor(census$ethnicityew, levels = seq(1,18), labels = c("English/Welsh/Scottish/Northern Irish/British", 
+"Irish", 
+"Gypsy or Irish Traveller", 
+"Other White", 
+"Mixed/multiple ethnic group: White and Black Caribbean", 
+"Mixed/multiple ethnic group: White and Black African", 
+"Mixed/multiple ethnic group: White and Asian", 
+"Mixed/multiple ethnic group: Other Mixed", 
+"Indian", 
+"Pakistani", 
+"Bangladeshi", 
+"Chinese", 
+"Other Asian", 
+"African", 
+"Caribbean", 
+"Other Black", 
+"Arab", 
+"Any other ethnic group"))
+
+#1: white 2: Asian 3: black 4: Arab 5: other
+census$ethngrouped <- census$ethnicityew
+census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | census$ethnicityew == "Irish" | census$ethnicityew == "Gypsy or Irish Traveller"| census$ethnicityew == "Other White", 1,       ifelse( census$ethnicityew == "Indian" | census$ethnicityew == "Pakistani"| census$ethnicityew == "Bangladeshi" | census$ethnicityew == "Chinese"| census$ethnicityew == "Other Asian", 2, 
+                                        ifelse(census$ethnicityew == "African" | census$ethnicityew == "Caribbean"| census$ethnicityew == "Other Black", 3, 
+                                               ifelse(census$ethnicityew == "Arab", 4, 
+                                                      ifelse(census$ethnicityew == "other", "Any other ethnic group", 5)))))
+
+```
+
+
+```{r echo = FALSE, warning= FALSE}
+lr <- select(census, caseno, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
+lr$separated <- lr$marstat
+lr <- lr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+lr <- lr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+lr <- lr %>% mutate(london = ifelse(region == 10, 1, 0))
+colnames(lr) <- c("ID", "disability", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
+#replace -9 with NA 
+lr <- lr %>% mutate_all(funs(replace(., . == -9, NA)))
+lr <- lr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion))
+
+```
+
+```{r echo = FALSE}
+# Create training and validation dataset
+input_ones <- lr[which(lr$separated == 1), ]  # all 1's
+input_zeros <- lr[which(lr$separated == 0), ]  # all 0's
+set.seed(100)  # for repeatability of samples
+input_ones_training_rows <- sample(1:nrow(input_ones), 0.7*nrow(input_ones))  # 1's for training
+input_zeros_training_rows <- sample(1:nrow(input_zeros), 0.7*nrow(input_zeros))  # 0's for training. Pick as many 0's as 1's
+training_ones <- input_ones[input_ones_training_rows, ]  
+training_zeros <- input_zeros[input_zeros_training_rows, ]
+trainingData <- rbind(training_ones, training_zeros)  # row bind the 1's and 0's 
+
+# Create Test Data
+test_ones <- input_ones[-input_ones_training_rows, ]
+test_zeros <- input_zeros[-input_zeros_training_rows, ]
+testData <- rbind(test_ones, test_zeros)  # row bind the 1's and 0's 
+```
+
+
+```{r message = FALSE, echo = FALSE, results = "hide", warning = FALSE}
+library(smbinning)
+library(InformationValue)
+
+# use training data to train the model
+#lin_mo1 <- glm(separated ~ social_grade + education + religion + age + london + children + ethnicity, data = trainingData, family = binomial)
+#lin_mo2 <- glm(separated ~ social_grade + education + religion + age + london + disability + children +ethnicity, data = trainingData, family = binomial)
+lin_mo1 <- glm(separated ~ social_grade + education, data = trainingData, family = binomial)
+lin_mo2 <- glm(separated ~ social_grade + education + age, data = trainingData, family = binomial)
+
+lin_mo3 <- glm(separated ~ social_grade + education + disability, data = trainingData, family = binomial(link = "logit"))
+lin_mo4 <- glm(separated ~ social_grade + education + disability + age, data = trainingData, family = binomial(link = "logit"))
+lin_mo5 <- glm(separated ~ social_grade, data = trainingData, family = binomial(link = "logit"))
+
+
+# create predicted values and un-log it.
+predicted1 <- predict(lin_mo1, testData, type = "response")
+predicted2 <- plogis(predict(lin_mo2, testData))
+predicted3 <- plogis(predict(lin_mo3, testData))
+predicted4 <- plogis(predict(lin_mo4, testData))
+predicted5 <- predict(lin_mo5, testData, type = "response")
+
+# check for misclassification error
+#misClassError(testData$separated, predicted1)
+# 0.4311, It should be a value between 0 and 1, the lower the better
+#misClassError(testData$separated, predicted2)
+#misClassError(testData$separated, predicted3, threshold = Cutoff)
+#misClassError(testData$separated, predicted4)
+#misClassError(testData$separated, predicted5)
+
+
+#plotROC(testData$separated, predicted5)
+#plotROC(testData$separated, predicted4)
+#plotROC(testData$separated, predicted3)
+#plotROC(testData$separated, predicted2)
+#plotROC(testData$separated, predicted1)
+
+#library(stargazer)
+#stargazer(list(lin_mo1,lin_mo2, lin_mo3),type = "text")
+```
+Based on our analysis, the best model contains 4 variables: Social Grade, Education, Health, and Age. 
+
+### ROC Curve
+A close look on the ROC Curve can give us more insights. Shown by the sensitivity and 1-specifity index, the increase of the True positive Rate of our model is slightly faster than the increase of the false positive rate. Since the greater the AUC (Area Under the Curve) the better the predictive ability of the model, the AUC of our model 0.6105 indicates that our model is fair but not perfect. 
+```{r echo = FALSE}
+lin_mo4 <- glm(separated ~ social_grade + education + disability + age , data = trainingData, family = binomial(link = "logit"))
+predicted4 <- plogis(predict(lin_mo4, testData))
+#misClassError(testData$separated, predicted4)
+plotROC(testData$separated, predicted4)
+```
+
+
+### Accuracy
+Next, we calculate the model's accuracy by comparing it to the mean of the test dataset. The result indicates that the accuracy rate is 58.89%. The accuracy rate tells us how accurate our predicted result compared to the actual result is. Our model will get about 59 correct results within 100 examples. 
+
+```{r}
+# Calculate the model's accuracy
+pred <- ifelse(predicted4 > mean(as.numeric(testData$separated)), 1, 0)
+mean(testData$separated == pred)
+```
+
+### Multicollinearity
+Finally, we examined the multicollinearity in the model by using the Variance Inflation Factor. According to the result below, all indicators are very close to 1 and well below 5. Therefore, all predictors within this particular logistic regression are not linearly related. We can safely conclude that the multicollinearity is very low and the model is valid.
+
+```{r echo = FALSE, warning = FALSE, message = FALSE}
+# check for multicollinearity
+library(car)
+vif(lin_mo4) 
+# as long as all values are below 4, it is fine, no big deal
+```
+
+### Limitation
+Unfortunately, we recognize that our model does not outperform the base prediction because the mean divorce rate is about 21%. This means that if we predict all people are not divorced, we will yield a higher prediction result. We suspect that this result is a problem rooted in the original massive census dataset because there are a total of 121 variables, and we are likely to miss some potential drivers of the marital status.
+
+### Conclusion
+Nevertheless, our finding is still significant because we identified a few strong drivers to unhappy marriages. Among all variables we dicussed in this report, Social Grade, Education, Age, and Health are the most important factors for predicting if a person is likely to be divorced.  
 
 
 
@@ -634,11 +1384,11 @@ The best fit was determined by adding and removing the variables above until the
 
 # Conclusion
 
-Our findings will go here
+This paper has examined variables hypothesised to affect divorce rates in the UK. According to the analysis performed above, it is evident that divorce rates have multiple determinant factors, which themselves are potentially co-dependant. This analysis does not attempt to single out a specific variable or group of variables as the main determinant of divorce rate, but examines potential affecting variables.
 
-```{r Findings}
+Lacking any information about a particular person, age would be a good first predictor of marital status. It has been shown that people in their 40's have the highest divorce rates in society. This is true regardless of social status.
 
-```
+It is evident that social class and education level are amongst the biggest influencing factors of divorce rate as depicted by the strong inverse relationship of these variables with divorce rates. This trend holds true accross all ethnicities and religions, which further suppports the strength of the variables.
 
 # References
 
