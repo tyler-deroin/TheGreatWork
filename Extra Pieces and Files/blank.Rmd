@@ -1,0 +1,117 @@
+---
+title: "Divorce and its Causes in United Kingdom"
+author: "Team M"
+
+date: "October 13, 2017"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 2
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, messages = FALSE, warning = FALSE)
+```
+
+
+\newpage
+# Introduction
+Marriage is viewed by many as an important social and sometimes religious life event for a majority of people.  It symbolizes and unites two individuals into a single-family unit of everlasting bliss. Tragically, for some marriages face the reality that they were not meant to last and either officially through divorce or unofficially through separation. Since the United Kingdom divorce rate hit its peak in 2003, it has steadily dropped to NUMBER HERE (Haines, 2017) and CITATION NUMBER.  This drop has been attributed to culture changes around cohabitation, "couples living together before getting married" (Bingham, 2015). 
+
+Despite the wonderful change in the overall divorce rate, there are still many new divorces and separations each year leading us to wonder what could still cause such a travesty. Our curiosity and ultimately investigation is to find the remaining factors still bringing about the decline and end of family units across the United Kingdom based on the 2011 Census data. 
+
+
+
+http://www.telegraph.co.uk/news/uknews/12011714/Divorce-rate-at-lowest-level-in-40-years-after-cohabitation-revolution.html
+https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/divorce/bulletins/divorcesinenglandandwales/2015
+
+
+
+# Description
+The dataset we examined is the 5% sample data of the 2011 UK Census. It contains 2,848,155 observations and 121 variables. Each observation represents a UK citizen
+Since the dataset is very large and there are too many variables, we decided to exclusively focus on the relationship between marital status (marstat) and other variables. In brief, we would like to examine the factors that may influence people's marriage and lead to higher divorce rate. Therefore, we selected a total of 17 variables that may be highly correlated with marital status.
+
+
+We can attach a table of all variables we examined here:
+
+
+# Methods 
+a really brief description of the R packages we used. We can load all our libraries in this page:
+```{r, message=FALSE, warning = FALSE}
+library(dplyr)
+library(ggplot2)
+library(stargazer)
+library(readr)
+library(RCurl)
+library(foreign)
+```
+
+
+```{r}
+# Load data
+url <- "https://raw.githubusercontent.com/dlouhasha/TheGreatWork/master/data/filtered_dataset.csv"
+filtered_data <- getURL(url)
+filtered_data <- read.csv(textConnection(filtered_data))
+
+fd <- filtered_data
+fd <- as.data.frame(fd)
+
+```
+
+
+
+```{r, echo = FALSE}
+# changing the factor names 
+fd[, 'region'] <- factor(fd[,'region'], levels = c(1, 2, 3, 4, 5, 6, 7,
+                                                       8, 9, 10, 11), 
+                           labels = c('North East', 'North West', 'Yorkshire and the Humber', 
+                                      'East Midlands', 'West Midlands', 'East of England', 
+                                      'Inner London',
+                                      'Outer London', 'South East', 'South West', 'Wales'))
+
+fd <- fd %>% mutate('binary_region_num' = ifelse(region == 'Inner London', 1, 0)) %>% mutate( 'binary_region_factor' = ifelse(region == 'Inner London', "Inner London", "Outside London"))
+
+
+fd[,'marstat'] <- factor(fd[,'marstat'], level = c(1,2,3,4,5,6), 
+                           labels = c('Single', 'Married', 'Same-sex', 'Separated', 
+                                      'Divorced', 'Widowed'))
+
+fd <- mutate(fd, binary_marstat = ifelse(marstat == "Separated" | marstat == 'Divorced', 1, 0))
+
+fd[,'transport']<- factor(fd[,'transport'], levels = c(1, 2, 3, 4, 5, 6, 7,
+                                                           8, 9, 10, 11), 
+                            labels = c('Work from home', 'metro', 'Train', 'Bus',
+                                       'Taxi', 'Motocycle', 'drive a car', 'passenger in a car', 
+                                       'Bicycle', 'On foot', 'Other'))
+
+fd[,'wpzhome'] <- factor(fd[,'wpzhome'], level = c(1,2,3,4,5), 
+                           labels = c('Work from home', 'Same zone', 'Outside zone, but same LA/UA district',
+                                      'Outside LA/UA/LGD', 'Workplace outside UK'))
+
+fd[,'aggdtwpew11g'] <- factor(fd[,'aggdtwpew11g'], level = c(1, 2, 3, 4, 5, 6, 7,
+                                                                 8, 9, 10, 11, 12), 
+                                labels = c('less than 2km', '2-5', '5-10', '10-20', 
+                                           '20-40', '40-60', '60 or more', 'at home', 
+                                           'No fixed place', 'Outside England and Wales but in UK', 
+                                           'Outside UK', 'Offshore but within UK'))
+
+fd <- mutate(fd, Highest_qualification = hlqupuk11)
+fd[,'Highest_qualification'] <- factor(fd[,'Highest_qualification'], 
+                                            levels = c(10, 11, 12, 13, 14, 15, 16), labels = c('No qualification', 'Level 1', 'Level 2', 'Apprenticeship','Level 3', 'Level 4', 'Others'))
+
+fd[,'hours']<- factor(fd[,'hours'], level= c(1,2,3,4), labels = c('15 or less', '16-30', '31-48','49 or more'))
+
+fd[, 'tenure'] <- factor(fd[,'tenure'], levels = c(1, 2, 3, 4, 5), 
+                           labels = c('Owns outright', 'Owns with a mortgage', 'Shared ownership', 'Rents', 'Rent-free'))
+
+fd <- fd%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+
+fd <- fd %>% mutate(youngest_child_age = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==8|dpcfamuk11==14, 'youngest aged 0-4', ifelse(dpcfamuk11==3|dpcfamuk11==9|dpcfamuk11==15, 'youngest aged 5-7', ifelse(dpcfamuk11==4|dpcfamuk11==10|dpcfamuk11==16, 'youngest aged 8-9', ifelse(dpcfamuk11==5|dpcfamuk11==11|dpcfamuk11==17, 'youngest aged 10-11', ifelse(dpcfamuk11==6|dpcfamuk11==12|dpcfamuk11==18, 'youngest aged 12-15', ifelse(dpcfamuk11==7|dpcfamuk11==13|dpcfamuk11==19, 'youngest aged 16-18', NA))))))))
+
+```
+
+
+
+# Appendix:
+
