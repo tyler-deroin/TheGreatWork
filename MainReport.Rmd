@@ -111,9 +111,9 @@ fd[,'hours']<- factor(fd[,'hours'], level= c(1,2,3,4), labels = c('15 or less', 
 fd[, 'tenure'] <- factor(fd[,'tenure'], levels = c(1, 2, 3, 4, 5), 
                            labels = c('Owns outright', 'Owns with a mortgage', 'Shared ownership', 'Rents', 'Rent-free'))
 
-fd <- fd%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+fd <- fd%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, '0.No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, '1.One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, '2.Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, '3.Three or more children', NA)))))
 
-fd <- fd %>% mutate(youngest_child_age = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==8|dpcfamuk11==14, 'youngest aged 0-4', ifelse(dpcfamuk11==3|dpcfamuk11==9|dpcfamuk11==15, 'youngest aged 5-7', ifelse(dpcfamuk11==4|dpcfamuk11==10|dpcfamuk11==16, 'youngest aged 8-9', ifelse(dpcfamuk11==5|dpcfamuk11==11|dpcfamuk11==17, 'youngest aged 10-11', ifelse(dpcfamuk11==6|dpcfamuk11==12|dpcfamuk11==18, 'youngest aged 12-15', ifelse(dpcfamuk11==7|dpcfamuk11==13|dpcfamuk11==19, 'youngest aged 16-18', NA))))))))
+fd <- fd %>% mutate(youngest_child_age = ifelse(dpcfamuk11==1, '0.No children', ifelse(dpcfamuk11==2|dpcfamuk11==8|dpcfamuk11==14, '1.youngest aged 0-4', ifelse(dpcfamuk11==3|dpcfamuk11==9|dpcfamuk11==15, '2.youngest aged 5-7', ifelse(dpcfamuk11==4|dpcfamuk11==10|dpcfamuk11==16, '3.youngest aged 8-9', ifelse(dpcfamuk11==5|dpcfamuk11==11|dpcfamuk11==17, '4.youngest aged 10-11', ifelse(dpcfamuk11==6|dpcfamuk11==12|dpcfamuk11==18, '5.youngest aged 12-15', ifelse(dpcfamuk11==7|dpcfamuk11==13|dpcfamuk11==19, '6.youngest aged 16-18', NA))))))))
 
 ```
 
@@ -194,11 +194,6 @@ According to Office for National Statistics in their online publication in July 
 There is no empirical study on divorce rates in different regions in UK, but we think the reasons mentioned above could all have contributed to the high divorce rates in Inner London. However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in Inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. We can conclude that there are more divorce and separated people living in London but not infer any causal relationship. Above all, London is the number one Tinder hotspots (thrillist.com, Nov 2015). 
 
 
-Office for National Statistics, July 2017 [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/]
-
-Susan L. Brown and I-Fen Lin 18 Oct 2012, [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/]
-
-https://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most
 
 
 ```{r region_vs_others, echo = FALSE, eval= FALSE}
@@ -258,27 +253,38 @@ fd %>% filter(!is.na(age))%>% ggplot(aes(x = age))+ geom_histogram() + facet_wra
 
 ### Dependent children
 
-When people get married they are often in love and happy, most married couples look forward to parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage only when they are preschool-aged (Becker et al. 1977), as they grow older, their binding force in a marriage weakens; the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). 
+When people get married they are often in love and happy, most married couples look forward to parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. The greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). The birth of an infant often brings couples back together who would have otherwise divorced. Most researches agree that children increase marital stability, however some say only when they are preschool-aged (Becker et al. 1977), as they grow older, their binding force in a marriage weakens. Experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Therefore married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
 
-The birth of an infant often brings couples back together who would have otherwise divorced. Experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Therefore married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
+We are keen to explore if we observe the same pattern in our data (1) the more children a couple have, the less likely they are to be divorced/separated. (2) as the age of youngest child grows, the more likely the couple will get divorced/separated 
 
-We are keen to explore if we observe the same pattern in our data (1) as the age of youngest child grows, the more likely the couple will get divorced/separated (2) the more children a couple have, the less likely they are to be divorced/separated. 
+Out graph shows that the divorce rate is higher when the couple has only one child (18.5%) than having no child (10.3%), but the divorce rates decreases as they have more children (11.6% for two children and 12.7% for three and more). Testing further confirms that the difference between one child and having no child is statistically significant, which is contradictory to earlier research showing that having even the first child increases marital stability. Could children give rise to parenting conflicts that lead to divorce and separation? Possible but we have no means to confirm. However our result could be screwed by the class NA data. The dataset has one classed under the family dependent children variable named "Persons not in a family OR persons in other related families" and they have the highest divorce rate of 81%. These people could either have no children or regard them as having no children and if we consider them as no children, the pattern again is consistent with previous findings that children increase marital stability. We can confirm that the first hypothesis is true. 
 
-
-Becker, Gary S., Elizabeth Landes, and Robert T. Michael. 1977. "An Economic Analysis of Marital Instability." Journal of Political Economy 85:1141-87.
-
-Waite, Linda J, and Lee A Lillard. 1991. Children and marital disruption. American Journal of Sociology 96(4):930–953. 
-
-Qi Xu1*, Jianning Yu2 and Zeqi Qiu3. 2015, The impact of children on divorce risk. Xu et al. The Journal of Chinese Sociology (2015) 2:1
-
-Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
-
-## Dependent Children and Social Grade
+When we look at the age of the youngest children in each class of number of children, the divorce rate increases as the children grow older which confirms our second hypothesis. 
 
 ```{r}
-family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+plot_number <- fd %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(!is.na(children_class)) %>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Number of children in family')
 
-family_compo %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
+plotNA <- fd %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Number of children in family')
+
+plot_age1 <- fd %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class, youngest_child_age) %>% filter(!is.na(children_class)) %>% group_by(youngest_child_age)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = youngest_child_age, y = divorce_rate))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Youngest child age in family')
+
+
+plot_age_number <- fd %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class, youngest_child_age) %>% filter(!is.na(children_class)) %>% group_by(children_class, youngest_child_age)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = youngest_child_age, y = divorce_rate))+ geom_col(position = 'dodge') + facet_wrap(~children_class)+ theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Youngest child age in family by number of children')
+
+#grid.arrange(plo, plot_age, =2)
+
+plot_social <- fd %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
+
+#plot_number
+#plot_social
+#plotNA
+grid.arrange(plot_number, plotNA, ncol=2)
+plot_age1
+#grid.arrange(plot_age1, plot_age, ncol = 2)
+```
+
+```{r number_children_ttest}
+t.test(fd$binary_marstat[fd$children_class == '0.No children'], fd$binary_marstat[fd$children_class == "1.One child"])
 ```
 
 
@@ -328,5 +334,23 @@ Our findings will go here
 
 Main Github Repository: https://github.com/dlouhasha/TheGreatWork
 
+Becker, Gary S., Elizabeth Landes, and Robert T. Michael. 1977. "An Economic Analysis of Marital Instability." Journal of Political Economy 85:1141-87.
+
+Waite, Linda J, and Lee A Lillard. 1991. Children and marital disruption. American Journal of Sociology 96(4):930–953. 
+
+Qi Xu1*, Jianning Yu2 and Zeqi Qiu3. 2015, The impact of children on divorce risk. Xu et al. The Journal of Chinese Sociology (2015) 2:1
+
+Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
+
+Office for National Statistics, July 2017 [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/]
+
+Susan L. Brown and I-Fen Lin 18 Oct 2012, [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/]
+
+https://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most
+
+
+
 # Appendix
 A list of all variables and descriptions
+
+
