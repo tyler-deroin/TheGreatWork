@@ -1163,34 +1163,56 @@ t.test(fd$binary_marstat[fd$children_class == '0.No children'], fd$binary_marsta
 ```
 
 
-## Health & Marriage
+# Health & Marriage
+
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
-#This should be made universal and not distinct to any one local machine
 mine <- select(fd, disability, marstat, binary_marstat)
 
-mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
+mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "Not limited") )
 mine$binary_marstat <- factor(mine$binary_marstat, levels = c(0,1), labels = c("married", "divorced"))
-chisq.test(mine$binary_marstat,mine$disability)
+mine2 <- select(fd, disability, marstat, binary_marstat, scgpuk11c)
+mine2 <- mine2[mine2$scgpuk11c != -9,]
+mine2$disability <- factor(mine2$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
+mine2 <- mine2 %>% group_by(disability,scgpuk11c) %>% mutate(divorce_rate = mean(binary_marstat))
+mine2 <- mine2[complete.cases(mine2),]
 
+mine3 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat))
 ```
 
-A chi-square test of the two variables indicate that the correlation between marital status and long-term health problem is significant. This finding suggests that the two variables are not independent of each other. Long-term health problem will influence marital status. 
+Since health is a critical factor for a satisfied life, health can be an important factor to influence marriage. There are three levels of health indicators in this dataset: "Limit a lot", "Limit a little", and "Not limited". Each level represents the degree of daily activities a person is limited to because of his or her long-term illness. The "Not limited" category indicates that a person's day to day activities are not limited at all by the long-term health illness or there is no illness. The percentage of the people falls under the category is 8.5%, 9.4%, and 82.1% for "Limit a Lot", "Limit a little", and "Not limited" respectively. 
 
 ```{r echo = FALSE}
-mine2 <- select(fd, disability, marstat, binary_marstat)
-mine2$disability <- factor(mine2$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
-mine2 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat))
-ggplot(mine, aes(disability, fill =binary_marstat))+geom_bar(position = "fill")
-ggplot(mine2, aes(disability, divorce_rate))+geom_bar(stat = "identity")
+chisq.test(mine$binary_marstat,mine$disability)
 ```
-The graph shows that the less severe the long-term health problem, the less the divorced rate.
+
+First of all, it is important to examine whether the health and marital status are independent of each other. The chi-square test indicates that there is a relationship between the two variables. The degree of the relationship is examined through Exhibit1 below. 
+
+```{r echo = FALSE}
+
+ggplot(mine3, aes(disability, divorce_rate))+geom_bar(stat = "identity")+labs(x = "Health", y = "Divorce Rate")
+```
+
+Exhibit 1 Health and Divorce Rate
+
+Exhibit 1 illustrates how health has an observable impact on divorce rate. The divorce rate for "Not limited" people is 19.53%, which is 16.77% lower than the divorce rate of 36.30% for "Limit a lot" people. However, there is a chance that this model is highly correlated with other variables such as social status and may not be the real drive for this observable impact. It is possible that the people with lower social status is not able to afford healthcare or healthy lifestyle and therefore lead to higher divorce rate.
+
+
+```{r echo = FALSE}
+ggplot(mine2, aes(factor(scgpuk11c), divorce_rate, fill = disability))+geom_bar(stat = "identity", position = "dodge") + labs(x = "Social Grade", y = "Divorce Rate")
+```
+
+Exhibit 2 Controling the Social Grade
+
+To validate this finding, it is important to examine the colinearity between social grade and health. According to Exhibit 2, within each social grade, the impact of disability on health is still very strong and especially strong in the lowest social grade, level 4.Therefore, it can be concluded that the variable health has a real and observable impact on marital status. The more severe the health problem, the higher the divorce rate. 
+
+Furthermore, similar findings are also published elsewhere. A report by Time (http://time.com/83486/divorce-is-more-likely-if-the-wife-not-the-husband-gets-sick/) dicussed that 75% of couples dealing with chronic disease end in divorce. To summarise, health problems indeed significantly influence the divorce rate. 
 
 
 
 # Logistic Regression
+##A comprehensive regression analysis of all correlated variables
 
-A comprehensive regression analysis of all correlated variables
-
+###Method
 As the dependant variable in question is a dichotomous variable (divorced or not divorced), we chose to build a logistic regression model instead of a linear regression model. Then we selected the variables discussed above as dependent variables. The variables presented thus far in this report are the variables hypothesised to have the greatest effect on a person's liklihood of being divorced in the sample.  Our goal was to use the variables we examined to predict whether a person will be divorced. 
 
 Overall, we experimented with a total of 8 variables to find the best Logistic Regression Model:
@@ -1203,10 +1225,75 @@ Overall, we experimented with a total of 8 variables to find the best Logistic R
 7. Ethnicity
 8. Whether the person lives in London
 
+The best fit was determined by adding and removing the variables above until the best combination of the aforementioned metrics was obtained.
+
+As a measure of the overall model's explanatory power, two main measures were use:
+1) c-statistic or AUC (area under ROC curve)
+2) The accuracy of the predictions above a certain threshold (the mean divorce rate for our purposes)
+
+In addition, we also examined the multicolinearity of our model to ensure its validity. In order to understand how good our model is, we partitioned the original dataset into 70% training data and 30% test data. After we used the training data to train the model, we then used the test data to compare our models.
 
 
+```{r echo = FALSE}
 
-# Hypothesis Testing and Prediction Model (Helene's)
+census$ethnicityew <- factor(census$ethnicityew, levels = seq(1,18), labels = c("English/Welsh/Scottish/Northern Irish/British", 
+"Irish", 
+"Gypsy or Irish Traveller", 
+"Other White", 
+"Mixed/multiple ethnic group: White and Black Caribbean", 
+"Mixed/multiple ethnic group: White and Black African", 
+"Mixed/multiple ethnic group: White and Asian", 
+"Mixed/multiple ethnic group: Other Mixed", 
+"Indian", 
+"Pakistani", 
+"Bangladeshi", 
+"Chinese", 
+"Other Asian", 
+"African", 
+"Caribbean", 
+"Other Black", 
+"Arab", 
+"Any other ethnic group"))
+
+#1: white 2: Asian 3: black 4: Arab 5: other
+census$ethngrouped <- census$ethnicityew
+census$ethngrouped <- ifelse(census$ethnicityew == "English/Welsh/Scottish/Northern Irish/British"  | census$ethnicityew == "Irish" | census$ethnicityew == "Gypsy or Irish Traveller"| census$ethnicityew == "Other White", 1,       ifelse( census$ethnicityew == "Indian" | census$ethnicityew == "Pakistani"| census$ethnicityew == "Bangladeshi" | census$ethnicityew == "Chinese"| census$ethnicityew == "Other Asian", 2, 
+                                        ifelse(census$ethnicityew == "African" | census$ethnicityew == "Caribbean"| census$ethnicityew == "Other Black", 3, 
+                                               ifelse(census$ethnicityew == "Arab", 4, 
+                                                      ifelse(census$ethnicityew == "other", "Any other ethnic group", 5)))))
+
+```
+
+
+```{r echo = FALSE, warning= FALSE}
+lr <- select(census, caseno, disability, marstat, hlqupuk11, scgpuk11c, religionew, age, region)
+lr$separated <- lr$marstat
+lr <- lr %>% mutate(separated = replace(separated, marstat == 2 | marstat == 3, 0))
+lr <- lr %>% mutate(separated = replace(separated, marstat == 5 | marstat == 4, 1))
+lr <- lr %>% mutate(london = ifelse(region == 10, 1, 0))
+colnames(lr) <- c("ID", "disability", "marstat", "education", "social_grade", "religion", "age", "region", "separated", "london")
+#replace -9 with NA 
+lr <- lr %>% mutate_all(funs(replace(., . == -9, NA)))
+lr <- lr %>% filter(!is.na(social_grade), !is.na(education), !(education == 16), !is.na(religion))
+
+```
+
+```{r echo = FALSE}
+# Create training and validation dataset
+input_ones <- lr[which(lr$separated == 1), ]  # all 1's
+input_zeros <- lr[which(lr$separated == 0), ]  # all 0's
+set.seed(100)  # for repeatability of samples
+input_ones_training_rows <- sample(1:nrow(input_ones), 0.7*nrow(input_ones))  # 1's for training
+input_zeros_training_rows <- sample(1:nrow(input_zeros), 0.7*nrow(input_zeros))  # 0's for training. Pick as many 0's as 1's
+training_ones <- input_ones[input_ones_training_rows, ]  
+training_zeros <- input_zeros[input_zeros_training_rows, ]
+trainingData <- rbind(training_ones, training_zeros)  # row bind the 1's and 0's 
+
+# Create Test Data
+test_ones <- input_ones[-input_ones_training_rows, ]
+test_zeros <- input_zeros[-input_zeros_training_rows, ]
+testData <- rbind(test_ones, test_zeros)  # row bind the 1's and 0's 
+```
 
 
 ```{r message = FALSE, echo = FALSE, results = "hide", warning = FALSE}
@@ -1224,79 +1311,6 @@ lin_mo3 <- glm(separated ~ social_grade + education + disability, data = trainin
 lin_mo4 <- glm(separated ~ social_grade + education + disability + age, data = trainingData, family = binomial(link = "logit"))
 lin_mo5 <- glm(separated ~ social_grade, data = trainingData, family = binomial(link = "logit"))
 
-
-
-# create predicted values and un-log it.
-predicted1 <- predict(lin_mo1, testData, type = "response")
-predicted2 <- plogis(predict(lin_mo2, testData))
-predicted3 <- plogis(predict(lin_mo3, testData))
-predicted4 <- plogis(predict(lin_mo4, testData))
-predicted5 <- predict(lin_mo5, testData, type = "response")
-
-# check for misclassification error
-#misClassError(testData$separated, predicted1)
-# 0.4311, It should be a value between 0 and 1, the lower the better
-#misClassError(testData$separated, predicted2)
-#misClassError(testData$separated, predicted3, threshold = Cutoff)
-#misClassError(testData$separated, predicted4)
-#misClassError(testData$separated, predicted5)
-
-
-# Conclusion
-
-Our findings will go here
-
-```{r Findings}
-
-```
-
-# References
-
-Main Github Repository: https://github.com/dlouhasha/TheGreatWork
-
-Adam Isen, Betsey Stevenson (2010). Women's Education and Family Behavior: Trends in Marriage, Divorce and Fertility. *Nber Working Paper Series*, No.15725. Available from: [DOI: 10.3386/w15725] (Accessed on 11 October 2017)
-
-Alexander Hagelüken, Suddeutsche Zeitung (2014) *Heiraten zementiert soziale Spaltung*, Available from: [http://www.sueddeutsche.de/wirtschaft/partnerwahl-und-ungleichheit-heiraten-zementiert-soziale-spaltung-1.1875581] (Accessed on 12 October 2017)
-
-Anushka Asthana and Denis Campbell, The Guardian (2009) *US study says divorce is linked to age and education*. Available from: [https://www.theguardian.com/lifeandstyle/2009/sep/27/divorce-linked-to-age-education] (Accessed on 11 October 2017)
-
-Becker, Gary S., Elizabeth Landes, and Robert T. Michael (1977) An Economic Analysis of Marital Instability. *Journal of Political Economy*, 85:1141-87. 
-
-Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
-
-Chloe Pantazi, Thrillist (2015) *Where are the Tinder users trying to get laid the most?*. Available from:[thttps://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most] (Accessed on 12 October 2017)
-
-Donna Ruane Morrisox and Mary Jo Coiro (1999) Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. *Journal of Marriage and the Family* 6(1), 626-637
-
-Hlavac, Marek (2015). stargazer: Well-Formatted Regression and Summary Statistics Tables. *R package version 5.2*. Available from:[http://CRAN.R-project.org/package=stargazer] (Accessed on 12 October 2017)
- 
-Jan D. Andersen (2005) Financial Problems and Divorce - Do Demographic Characteristics Strengthen the Relationship?. *Journal f Divorce & Remarriage*, 43(1-2), 149-161. Available from: doi: 10.1300/J087v43n01_08 (Accessed on 12 October 2017)
-
-John Bingham and Ashley kirk, The Telegraph (2015), *Divorce rate at lowest level in 40 years after cohabitation revolution*. Available from: [http://www.telegraph.co.uk/news/uknews/12011714/Divorce-rate-at-lowest-level-in-40-years-after-cohabitation-revolution.html] (Accessed on 12 October 2017)
-
-NHS Digital (2014) *Statistics on Drugs Misuse: English, 2014* Available from: [http://digital.nhs.uk/catalogue/PUB15943] (Accessed on 11 October 2017)
-
-Office for National Statistics (2015) *Births by parents' characterisitics in England and Wales：2015*. Available from: [https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/livebirths/bulletins/birthsbyparentscharacteristicsinenglandandwales/2015] (Accessed on 12 October 2017)
-
-Office for National Statistics (2015) *Divorces in England and Wales: 2015 - Dissolutions and annulments of marriage by previous marital status, sex, age, fact proven and to whom granted*. Available from: [https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/divorce/bulletins/divorcesinenglandandwales/2015] (Accessed on 12 October 2017) 
-
-Office for National Statistics (2017) *Marriage and divorce on the rise at 65 and over*. Available from: [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/] (Accessed on 12 October 2017)
-
-Qi Xu, Jianning Yu and Zeqi Qiu (2015) The impact of children on divorce risk. *The Journal of Chinese Sociology*, 2(1). Available from: DOI 10.1186/s40711-015-0003-0 (Accessed on 12 October 2017)
-
-Susan L. Brown and I-Fen Lin (2012). The Gray Divorce Revolution: Rising Divorce Among Middle-Aged and Older Adults, 1990-2010. *The Journals of Gerontology*, 67(6), 731-741. Available from: doi: 10.1093/geronb/gbs089 (Accessed on 12 October 2017)
-
-Thomas E.Trail, Benjamin R. Karney (2012). What's (Not) Wrong With Low-Income Marriages. *Journal of Marriage and Family*, 74(3), 413-427. Available from: DOI: 10.1111/j.1741-3737.2012.00977.x (Accessed on 11 October 2017)
-
-U.K. - Daily Mail (2015) *Wish you weren't here: Top ten divorce hot spots across Britain are all by the sea - with Blackpool the worst place to live if you want a happy marriage*. Available from: [http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html]. (Accessed on 11 October 2017)
-
-Waite, Linda J, and Lee A Lillard (1991) Children and marital disruption. *American Journal of Sociology*, 96(4):930–953. 
-
-Wendy Wang, Pew Research Center (2015) *The link between a college education and a lasting marriage*. Available from: [http://www.pewresearch.org/fact-tank/2015/12/04/education-and-marriage/] (Accessed on 12 October 2017) 
-
-
-# Appendix
-A list of all variables and descriptions
 
 # create predicted values and un-log it.
 predicted1 <- predict(lin_mo1, testData, type = "response")
@@ -1361,6 +1375,9 @@ Unfortunately, we recognize that our model does not outperform the base predicti
 Nevertheless, our finding is still significant because we identified a few strong drivers to unhappy marriages. Among all variables we dicussed in this report, Social Grade, Education, Age, and Health are the most important factors for predicting if a person is likely to be divorced.  
 
 
+
+
+
 # Conclusion
 
 This paper has examined variables hypothesised to affect divorce rates in the UK. According to the analysis performed above, it is evident that divorce rates have multiple determinant factors, which themselves are potentially co-dependant. This analysis does not attempt to single out a specific variable or group of variables as the main determinant of divorce rate, but examines potential affecting variables.
@@ -1369,7 +1386,50 @@ Lacking any information about a particular person, age would be a good first pre
 
 It is evident that social class and education level are amongst the biggest influencing factors of divorce rate as depicted by the strong inverse relationship of these variables with divorce rates. This trend holds true accross all ethnicities and religions, which further suppports the strength of the variables.
 
+
 # References
+
+Main Github Repository: https://github.com/dlouhasha/TheGreatWork
+
+Adam Isen, Betsey Stevenson (2010). Women's Education and Family Behavior: Trends in Marriage, Divorce and Fertility. *Nber Working Paper Series*, No.15725. Available from: [DOI: 10.3386/w15725] (Accessed on 11 October 2017)
+
+Alexander Hagelüken, Suddeutsche Zeitung (2014) *Heiraten zementiert soziale Spaltung*, Available from: [http://www.sueddeutsche.de/wirtschaft/partnerwahl-und-ungleichheit-heiraten-zementiert-soziale-spaltung-1.1875581] (Accessed on 12 October 2017)
+
+Anushka Asthana and Denis Campbell, The Guardian (2009) *US study says divorce is linked to age and education*. Available from: [https://www.theguardian.com/lifeandstyle/2009/sep/27/divorce-linked-to-age-education] (Accessed on 11 October 2017)
+
+Becker, Gary S., Elizabeth Landes, and Robert T. Michael (1977) An Economic Analysis of Marital Instability. *Journal of Political Economy*, 85:1141-87. 
+
+Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
+
+Chloe Pantazi, Thrillist (2015) *Where are the Tinder users trying to get laid the most?*. Available from:[thttps://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most] (Accessed on 12 October 2017)
+
+Donna Ruane Morrisox and Mary Jo Coiro (1999) Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. *Journal of Marriage and the Family* 6(1), 626-637
+
+Hlavac, Marek (2015). stargazer: Well-Formatted Regression and Summary Statistics Tables. *R package version 5.2*. Available from:[http://CRAN.R-project.org/package=stargazer] (Accessed on 12 October 2017)
+ 
+Jan D. Andersen (2005) Financial Problems and Divorce - Do Demographic Characteristics Strengthen the Relationship?. *Journal f Divorce & Remarriage*, 43(1-2), 149-161. Available from: doi: 10.1300/J087v43n01_08 (Accessed on 12 October 2017)
+
+John Bingham and Ashley kirk, The Telegraph (2015), *Divorce rate at lowest level in 40 years after cohabitation revolution*. Available from: [http://www.telegraph.co.uk/news/uknews/12011714/Divorce-rate-at-lowest-level-in-40-years-after-cohabitation-revolution.html] (Accessed on 12 October 2017)
+
+NHS Digital (2014) *Statistics on Drugs Misuse: English, 2014* Available from: [http://digital.nhs.uk/catalogue/PUB15943] (Accessed on 11 October 2017)
+
+Office for National Statistics (2015) *Births by parents' characterisitics in England and Wales：2015*. Available from: [https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/livebirths/bulletins/birthsbyparentscharacteristicsinenglandandwales/2015] (Accessed on 12 October 2017)
+
+Office for National Statistics (2015) *Divorces in England and Wales: 2015 - Dissolutions and annulments of marriage by previous marital status, sex, age, fact proven and to whom granted*. Available from: [https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/divorce/bulletins/divorcesinenglandandwales/2015] (Accessed on 12 October 2017) 
+
+Office for National Statistics (2017) *Marriage and divorce on the rise at 65 and over*. Available from: [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/] (Accessed on 12 October 2017)
+
+Qi Xu, Jianning Yu and Zeqi Qiu (2015) The impact of children on divorce risk. *The Journal of Chinese Sociology*, 2(1). Available from: DOI 10.1186/s40711-015-0003-0 (Accessed on 12 October 2017)
+
+Susan L. Brown and I-Fen Lin (2012). The Gray Divorce Revolution: Rising Divorce Among Middle-Aged and Older Adults, 1990-2010. *The Journals of Gerontology*, 67(6), 731-741. Available from: doi: 10.1093/geronb/gbs089 (Accessed on 12 October 2017)
+
+Thomas E.Trail, Benjamin R. Karney (2012). What's (Not) Wrong With Low-Income Marriages. *Journal of Marriage and Family*, 74(3), 413-427. Available from: DOI: 10.1111/j.1741-3737.2012.00977.x (Accessed on 11 October 2017)
+
+U.K. - Daily Mail (2015) *Wish you weren't here: Top ten divorce hot spots across Britain are all by the sea - with Blackpool the worst place to live if you want a happy marriage*. Available from: [http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html]. (Accessed on 11 October 2017)
+
+Waite, Linda J, and Lee A Lillard (1991) Children and marital disruption. *American Journal of Sociology*, 96(4):930–953. 
+
+Wendy Wang, Pew Research Center (2015) *The link between a college education and a lasting marriage*. Available from: [http://www.pewresearch.org/fact-tank/2015/12/04/education-and-marriage/] (Accessed on 12 October 2017) 
 
 
 
