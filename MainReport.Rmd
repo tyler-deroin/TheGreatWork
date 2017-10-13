@@ -845,10 +845,6 @@ https://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-
 
 
 # Appendix
-<<<<<<< HEAD
 A list of all variables and descriptions
 
 
-=======
-A list of all variables and descriptions
->>>>>>> 60fa141b614cd316fba35bb049828f158d64aed4
