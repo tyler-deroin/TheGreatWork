@@ -2,6 +2,7 @@
 title: "Divorce and its Causes in the United Kingdom"
 author: "Team M"
 
+
 date: "October 13, 2017"
 output:
   pdf_document:
@@ -68,6 +69,20 @@ fd <- as.data.frame(fd)
 
 ```
 
+In our report we aim to explore how selected variables singularly and collectively affect the probability of an individual being divorced or separated. 
+
+In the first part of the report we explore the interactions between selected variables and divorce rate. The divorce rate is calculated as percentage of unhappy marriages over total marriages,
+$$(divorced + separated)/(married + samesex + divorced + separated)$$
+
+We include separated in our definition of unhappy marriage because sometimes people continue to stay in marriage for practical reasons such as cohabitating and tax benefits, but that is more form over substance and most separated couples end up in divorce. Our team is particularly interested in the factors that lower people's marriage satisfaction which eventually lead to divorce. 
+
+The variables we select include inherent characteristics of an individual such as age, ethinicity, religion and country of birth, characteristics an individual acquire such as social grade, highest qualification achieved, and disability and lastly external factors such as region and type of housing. 
+
+Exploratory statistics includes mostly plotting. Bar plots are used when we want to represent the divorce rates for different classes of each variable, for example highest qualification achieved ranges from no qualification to level 4 (university and above). When we want to explore the interactions between more than one variables, we use color to represent them on the graph or use a grid to lay multiple small scale plots next to each other in order to identify any difference in pattern. 
+
+Hypothesis testing is also used to test if the observed pattern is statistically significant. Chi-squared test is used to explore whether two categorical variables are independent. Correlation test is used for testing correlations between two samples. Since most of our variables are categorical and marital status is categorical, chi-squared test is the best choice in our analysis. T-test is used for testing of difference in divorce rates across classes of variables. We ust 5% significance level for all the hypothesis testing done in this research. If the p-value from the test is less than 5%, we can confidently reject the null hypothesis. 
+
+
 
 In our report we aim to explore how selected variables singularly and collectively affect the probability of an individual being divorced or separated. 
 
@@ -128,9 +143,9 @@ fd[,'hours']<- factor(fd[,'hours'], level= c(1,2,3,4), labels = c('15 or less', 
 fd[, 'tenure'] <- factor(fd[,'tenure'], levels = c(1, 2, 3, 4, 5), 
                            labels = c('Owns outright', 'Owns with a mortgage', 'Shared ownership', 'Rents', 'Rent-free'))
 
-fd <- fd%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
+fd <- fd%>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, '0.No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, '1.One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, '2.Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, '3.Three or more children', NA)))))
 
-fd <- fd %>% mutate(youngest_child_age = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==8|dpcfamuk11==14, 'youngest aged 0-4', ifelse(dpcfamuk11==3|dpcfamuk11==9|dpcfamuk11==15, 'youngest aged 5-7', ifelse(dpcfamuk11==4|dpcfamuk11==10|dpcfamuk11==16, 'youngest aged 8-9', ifelse(dpcfamuk11==5|dpcfamuk11==11|dpcfamuk11==17, 'youngest aged 10-11', ifelse(dpcfamuk11==6|dpcfamuk11==12|dpcfamuk11==18, 'youngest aged 12-15', ifelse(dpcfamuk11==7|dpcfamuk11==13|dpcfamuk11==19, 'youngest aged 16-18', NA))))))))
+fd <- fd %>% mutate(youngest_child_age = ifelse(dpcfamuk11==1, '0.No children', ifelse(dpcfamuk11==2|dpcfamuk11==8|dpcfamuk11==14, '1.youngest aged 0-4', ifelse(dpcfamuk11==3|dpcfamuk11==9|dpcfamuk11==15, '2.youngest aged 5-7', ifelse(dpcfamuk11==4|dpcfamuk11==10|dpcfamuk11==16, '3.youngest aged 8-9', ifelse(dpcfamuk11==5|dpcfamuk11==11|dpcfamuk11==17, '4.youngest aged 10-11', ifelse(dpcfamuk11==6|dpcfamuk11==12|dpcfamuk11==18, '5.youngest aged 12-15', ifelse(dpcfamuk11==7|dpcfamuk11==13|dpcfamuk11==19, '6.youngest aged 16-18', NA))))))))
 
 ```
 
@@ -676,6 +691,7 @@ rp +
 in the different religions the pattern of the divorce rate per education level differe a lot from the overall pattern. Where there is on overall a high divorce rate for people with no education, for the  muslims it is way more constant, and for Buddhists it follow a totaly different pattern. 
 
 
+
 ```{r}
 #divorce rate per social grade and religion
 
@@ -852,93 +868,11 @@ ethn$ethngrouped <- ifelse(ethn$ethnicityew == "English/Welsh/Scottish/Northern 
 
 
 
-```
-
-```{r, echo = FALSE, message=FALSE, warning=FALSE}
-ethngrouped <- ethn %>% dplyr::select(binary_marstat, ethngrouped, count) %>% group_by(ethngrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(ethngrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
-
-#ggplot(data=ethngrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity grouped') + facet_wrap(~ ethngrouped)
-
-#ggplot(data=ethngrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = reorder(ethngrouped, prop)), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'ethnicity grouped') 
-
-ethngrouped_divorced = filter(ethngrouped, binary_marstat == "Separated/Divorced")
-
-ggplot(data=ethngrouped_divorced) + geom_bar(aes(x = reorder(ethngrouped, prop), y = prop, fill = ethngrouped), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'Divorce Rate per Ethnicity')
-
-```
-
-The divorce rate shows us some insight that we expected. For example, Asian divorce rate is significantly lower that for White people. The divorce rate is also very high for a person of mixed ethnicities. This might be explained by the fact that a mixed couple requires a more considerable amount of culture adjustment and understandings, and is more likely to divorce. Parents' value about divorce may thus transmitted to the child.
-However, one more unexpected result is that divorce rate are the highest among black people. If this trends has been the subject of a lot of studies in the US (e.g. http://www.swaraylawoffice.com/2010/08/divorce-rate-amongst-african-immigrants/), they are quite scarce about UK. 
-It is commonly known that Black people are still strongly discriminated against in the US, with inequalities in wages, access to education and higher crime rate. But these do not explain entirely the high divorce rate among Black people in UK as we can see in the Education/Ethnicity cross checking, divorce rate is high among Black people no matter whar their education level is. 
-An other reason we can think about is the discrepancy between African and European culture. Women in Africa are inferior to men, and confine themselves to domestic role. In UK, the women have the same rights as men, both socially and economically, giving them more independance and possibly leading to frictions.
-
-
-
-## Country of birth
-
-```{r, echo = FALSE, message=FALSE, warning=FALSE}
-cb <- myowndata %>% dplyr::select(binary_marstat, cobg) %>% group_by(binary_marstat, cobg) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(cobg) %>% mutate(prop = count / sum(count))
-```
-
-```{r, echo = FALSE, message=FALSE, warning=FALSE}
-
-## Grouping countries of birth by area
-
-cb$cobggrouped <- ifelse(cb$cobg == "England" | cb$cobg == "Scotland"| cb$cobg == "Northern Ireland"  | cb$cobg =="Wales"  | cb$cobg =="United Kingdom not otherwise specified" , "UK", 
-                         ifelse(cb$cobg =="Ireland" | cb$cobg =="Germany"  | cb$cobg =="Poland"  | cb$cobg =="Other EU countries: Member countries in 2001"  | cb$cobg =="Other EU countries: Accession countries 2001 to 2011"  | cb$cobg =="Rest of Europe", "Europe",
-                                ifelse( cb$cobg == "Middle East" | cb$cobg == "Eastern Asia" | cb$cobg == "Southern Asia: Bangladesh" | cb$cobg == "Southern Asia: India" | cb$cobg == "Southern Asia: Pakistan" | cb$cobg == "Rest of Southern Asia" | cb$cobg == "South-East Asia" | cb$cobg == "Central Asia", "Middle East and Asia", 
-                                        ifelse(cb$cobg ==  "North Africa" | cb$cobg == "Central and Western Africa" | cb$cobg == "South and Eastern Africa" | cb$cobg == "Africa not otherwise specified", "Africa", 
-                                               ifelse(cb$cobg == 'North America and the Caribbean' | cb$cobg == 'Central and South America', 'The Americas and the Caribbean', 'Antarctica, Oceania and other')))))
-
-myowndata$cobggrouped <- ifelse(myowndata$cobg == "England" | myowndata$cobg == "Scotland"| myowndata$cobg == "Northern Ireland"  | myowndata$cobg =="Wales"  | myowndata$cobg =="United Kingdom not otherwise specified" , "UK", 
-                         ifelse(myowndata$cobg =="Ireland" | myowndata$cobg =="Germany"  | myowndata$cobg  =="Poland"  | myowndata$cobg  =="Other EU countries: Member countries in 2001"  | myowndata$cobg  =="Other EU countries: Accession countries 2001 to 2011"  | myowndata$cobg  =="Rest of Europe", "Europe",
-                                ifelse( myowndata$cobg  == "Middle East" | myowndata$cobg  == "Eastern Asia" | myowndata$cobg  == "Southern Asia: Bangladesh" | myowndata$cobg  == "Southern Asia: India" | myowndata$cobg  == "Southern Asia: Pakistan" | myowndata$cobg  == "Rest of Southern Asia" | myowndata$cobg  == "South-East Asia" | myowndata$cobg  == "Central Asia", "Middle East and Asia", 
-                                        ifelse(myowndata$cobg  ==  "North Africa" | myowndata$cobg  == "Central and Western Africa" | myowndata$cobg  == "South and Eastern Africa" | myowndata$cobg  == "Africa not otherwise specified", "Africa", 
-                                               ifelse(myowndata$cobg  == 'North America and the Caribbean' | myowndata$cobg  == 'Central and South America', 'The Americas and the Caribbean', 'Antarctica, Oceania (including Australasia) and other')))))
-
-```
-
-```{r, echo = FALSE, message=FALSE, warning=FALSE}
-cbgrouped <- cb %>% dplyr::select(binary_marstat, cobggrouped, count) %>% group_by(cobggrouped, binary_marstat) %>% summarise(grouped_count = sum(count)) %>% ungroup() %>% group_by(cobggrouped) %>% mutate(prop = grouped_count/ sum(grouped_count))  
-
-#ggplot(data = cbgrouped) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge())  + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(title = 'countries of birth grouped') + facet_wrap(~ cobggrouped)
-
-cbgrouped_divorced = filter(cbgrouped, binary_marstat == "Separated/Divorced")
-
-ggplot(data=cbgrouped_divorced) + geom_bar(aes(x = reorder(cobggrouped, prop), y = prop, fill = cobggrouped), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Country of Birth')
-```
-
-The countries of birth tend to confirm the pattern we already found for ethnicities. 
-We can see that the trend of the countries of birth has some similarities with the world divorce ration heatmap you can find following this link: http://i.imgur.com/dep7XIZ.png.
-
-
-```{r, echo = FALSE}
-#myowndata %>% select(binary_marstat, cobggrouped, ethngrouped) %>% group_by(cobggrouped, ethngrouped) %>% summarise(count = n())%>% tidyr::spread(key = ethngrouped, value = count)
-```
- 
- 
-
-## Religion
-```{r, echo = FALSE}
-relig <- myowndata %>% dplyr::select(binary_marstat, religionew) %>% group_by(binary_marstat, religionew) %>% summarise(count = length(binary_marstat)) %>% ungroup() %>% group_by(religionew) %>% mutate(prop = count / sum(count))
-
-#ggplot(data=relig) + geom_bar(aes(x = binary_marstat, y = prop, fill = binary_marstat), stat = 'identity', position = position_dodge()) + facet_wrap(~ religionew) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'religion')
-
-relig_divorced = filter(relig, binary_marstat == "Separated/Divorced")
-
-ggplot(data=relig_divorced) + geom_bar(aes(x = reorder(religionew, prop), y = prop, fill = religionew), stat = 'identity', position = position_dodge()) + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title = 'Religion')
-```
-
-```{r, echo = FALSE}
-myowndata %>% select(binary_marstat, religionew, ethngrouped) %>% group_by(religionew, ethngrouped) %>% summarise(count = n()) %>% tidyr::spread(key = ethngrouped, value = count)
-```
-Cross-checking the religion and ethnicities variables, we can observe that the religions with the highest divorce rate are 'Other religion', 'No religion' or 'No stated', which might be a sign of more liberal values.
-Buddhists also have high divorce rate, probably due to its permissive point of view toward divorce (https://www.budsas.org/ebud/whatbudbeliev/237.htm). However, the ratio of Buddhists is very low, so their divorce rate has to be taken carefully.
-Finally, the next religion with the highest divorce rate is Christianism which is not so surprising. Unlike in Catholic Church where marriage is a sacred union, the Church of England has a more open point of view on divorce (which can be related to the historical divorce of Henri VIII). Not to mention that Europeans tend to be less and less committed and involved in religions.
 
 
 
 ## Age & Marriage
+
 Contains information about the age of the observation (person) in years. This variable ranges from 0 to 90 and is treated as a continuous variable. Ages 70, 75, 80, and 85 are clustered into groups each ranging 5 years (i.e. 70 through 74, 75 through 79, etc...). Furthermore, the 90 age group conatins ages 90 and above.
 
 For the purposes of this analysis, and to calculate the divorce rate by age, the clustered age groups were equally distibuted among the number of ages the group contains. (e.g the 70 through 74 age group was divided into 5 seperate age groups 70, 71, 72, 73, and 74 each inherenting the parent group's divorce rate).
@@ -1037,10 +971,13 @@ ggplot(data = data4, aes(x = age, y = divorce_rate)) + geom_col(position = 'dodg
 ```
 
 
+
 ## Region/Geography & Marriage
 An article on divorce rate by region piqued our interests (http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html). It lists the top 10 divorce hot spots and they are all coastal cities. The article states that the factors contributing to the high divorce rate in coastal regions are due to the high deprivation and possibly sheer boredoem in winter. In this paper we are keen to explore whether our data attests to the findings of that article. 
 
+
 Our plot shows a significant peak in the percentage of people in bad marriage (either divorced or separated) in Inner London compared to elsewhere. This is the opposite to the aforementioned article. London is anything but a deprived and boring city. The hypothesis testing conducted further confirms that region and marital status are not independent, and particularly Inner London has a higher divorce rate than elsewhere. Inner London has a divorce rate of approximately 25.4%, higher than the average of 19.9% in UK. The difference is statistically significant. Our focus then shifts to explore the factors that are causing such high divorce rates in London. 
+
 
 ```{r, echo = FALSE}
 # select the data relevant for region
@@ -1064,7 +1001,9 @@ chi_region
 round(chi_region$residuals, 3)
 ```
 
+
 ```{r region_ttest, echo = FALSE, eval=FALSE}
+
 t.test(fd$binary_marstat, fd$binary_marstat[fd$region == "Inner London"])
 ```
 
@@ -1087,22 +1026,26 @@ t.test(outside_london, fd$binary_marstat[fd$region == "Wales"])
 
 Could the region people choose to live affect their marriage satisfaction, or is it merely an artifact as a result of other influencing factors? We plot the divorce rates against other variables in our list and wrap them by region. If the variables have no impact, we should observe the same pattern across all regions, with London having a slightly higher divorce rate. 
 
-After looking at the relationship between divorce rate and education, social grade, hours worked per week, ethnicity, religion, housing type, number of children in the household, distance travelled to work and means of transport, we found no difference in patterns between Inner London and the rest. 
+After looking at the relationship between divorce rate and education, social grade, hours worked per week, ethnicity, religion, housing type, number of children in the household, we found no difference in patterns between Inner London and the rest. 
 
 Interestingly we observe a significantly high divorce rate for people aged 50 and above in Inner London. We further break down the population into two groups: age below 50 and age 50 and above. In the first group we no longer see any significant difference in divorce rates across regions, but the difference becomes more apparent in the second group (19.6% for population and 32.8% for aged 50 and above living in Inner London) and is statistically significant. 
 
 We have two questions following this observation, firstly why are there so many people getting divorced after 50s and secondly why Inner London?
+
+According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women. Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012). People getting more open-minded and receptive to divorce around them, higher economic independence, and more social interactions with people are among them. More significantly observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. Unfortunately information on order of marriages is abcent in our data. 
+
+There is no empirical study on divorce rates in different regions in UK, but we think the reasons mentioned above could all have contributed to the high divorce rates in Inner London. However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in Inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. We can conclude that there are more divorce and separated people living in London but not infer any causal relationship. Above all, London is the number one Tinder hotspots (thrillist.com, Nov 2015). 
+
+
+
 
 According to Office for National Statistics in their online publication in July 2017, while the number of divorces drop by 28% from 2005 to 2015, the number of men divorcing aged above 65 went up by 23% and 38% for women. Various factors contribute to the increasing divorce rate among older people (Susan L. Brown and I-Fen Lin 18 Oct 2012). People getting more open-minded and receptive to divorce around them, higher economic independence, and more social interactions with people are among them. More significanty observed in their data is that people in higher order marriages are more likely to end up in divorces than people in first marriage (53.46% compared to 46.54%). And people in their 50s and 60s are also more likely to be in higher order marriages compared to younger people. Unfortunately information on order of marriages is abcent in our data. 
 
 There is no empirical study on divorce rates in different regions in UK, but we think the reasons mentioned above could all have contributed to the high divorce rates in Inner London. However we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in Inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. We can conclude that there are more divorce and separated people living in London but not infer any causal relationship. Above all, London is the number one Tinder hotspots (thrillist.com, Nov 2015). 
 
 
-Office for National Statistics, July 2017 [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/]
+There is no empirical study on divorce rates in different regions in UK, we must be careful not to confuse the status of being divorced or separated with the instance of getting a divorce. In our data we look at the percentage of people who are divorced or separated at the time of the survey, without information on when and where the divorce occured. It could also be possible that people in inner London are less likely to remarry after they are divorced, just like London has the highest percentage of singles aged 30 and above. London is fun and people could be just having a good time being single or in relationships, without rushing into any marriage. We can conclude that there are more divorce and separated people living in London but not infer any causal relationship. Above all, London is the number one Tinder hotspots. 
 
-Susan L. Brown and I-Fen Lin 18 Oct 2012, [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3478728/]
-
-https://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most
 
 
 ```{r region_vs_others, echo = FALSE, eval= FALSE}
@@ -1131,6 +1074,7 @@ fd %>% filter(!is.na(tenure)) %>%group_by(region, tenure) %>% summarise(divorce_
 
 #divorce rate by distance to work
 fd %>% filter(!is.na(wpzhome)) %>%group_by(region, wpzhome) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = wpzhome, y = divorce_rate))+ geom_col() + facet_wrap(~region)+ theme(axis.text.x = element_text(angle = 60, hjust = 1))  
+
 ```
 
 ```{r region_graph_2agegroup}
@@ -1142,6 +1086,22 @@ plot50 <- region1%>% filter(age >=50) %>% group_by(region) %>% summarise(divorce
 
 require(gridExtra)
 grid.arrange(plot49, plot50, ncol=2)
+
+```
+
+```{r, echo = FALSE, eval = FALSE}
+#t-test for difference in divorce rate in people aged above 50 across regions 
+above50 <- filter(fd, age >= 50)
+t.test(above50$binary_marstat, above50$binary_marstat[above50$region == "Inner London"])
+
+
+# divorce rate by age and wrapped by regions
+fd %>% group_by(region, age) %>% summarise(divorce_rate = mean(binary_marstat))%>% ggplot(aes(x = age, y = divorce_rate * 100))+ geom_col() + facet_wrap(~region) + labs( title = "Divorce rate by region", x = 'Region', y = 'Divorce rate (%)')
+
+
+#distribution of age wrapped by region
+fd %>% filter(!is.na(age))%>% ggplot(aes(x = age))+ geom_histogram() + facet_wrap(~region)
+
 ```
 
 ```{r, echo = FALSE, eval = FALSE}
@@ -1162,60 +1122,97 @@ fd %>% filter(!is.na(age))%>% ggplot(aes(x = age))+ geom_histogram() + facet_wra
 
 ### Dependent children
 
-When people get married they are often in love and happy, most married couples look forward to parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. Children increase the stability of marriage only when they are preschool-aged (Becker et al. 1977), as they grow older, their binding force in a marriage weakens; the greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). 
-
-The birth of an infant often brings couples back together who would have otherwise divorced. Experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Therefore married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
-
-We are keen to explore if we observe the same pattern in our data (1) as the age of youngest child grows, the more likely the couple will get divorced/separated (2) the more children a couple have, the less likely they are to be divorced/separated. 
+When people get married they are often in love and happy, most married couples look forward to parenthood and having children could even strengthen their marital bond. However empirical study shows that the effect of children on marital stability could be very complex. The greater number of children, the smaller possibility of divorce, but the relationship is inversely quadratic rather than linear suggesting the stabilizing effect is the strongest with the first and second child (Xu, Yu and Qiu 2015). The birth of an infant often brings couples back together who would have otherwise divorced. Most researches agree that children increase marital stability, however some say only when they are preschool-aged (Becker et al. 1977), as they grow older, their binding force in a marriage weakens. Experiencing divorce often place young children at risk for a variety of problems, which may persist into adulthood (Morrisox and Coiro, 1999). Therefore married couples may choose to stay in marriges for the wellbeing of their children but when children are old enough they decide to part their ways. 
 
 
-Becker, Gary S., Elizabeth Landes, and Robert T. Michael. 1977. "An Economic Analysis of Marital Instability." Journal of Political Economy 85:1141-87.
+We are keen to explore if we observe the same pattern in our data (1) the more children a couple have, the less likely they are to be divorced/separated. (2) as the age of youngest child grows, the more likely the couple will get divorced/separated 
 
-Waite, Linda J, and Lee A Lillard. 1991. Children and marital disruption. American Journal of Sociology 96(4):930–953. 
 
-Qi Xu1*, Jianning Yu2 and Zeqi Qiu3. 2015, The impact of children on divorce risk. Xu et al. The Journal of Chinese Sociology (2015) 2:1
+Our graph shows that the divorce rate is higher when the couple has only one child (18.5%) than having no child (10.3%), but the divorce rates decreases as they have more children (11.6% for two children and 12.7% for three and more). Testing further confirms that the difference between one child and having no child is statistically significant, which is contradictory to earlier research showing that having even the first child increases marital stability. Could children give rise to parenting conflicts that lead to divorce and separation? Possible but we have no means to confirm. However our result could be screwed by the class NA data. The dataset has one class under the family dependent children variable named "Persons not in a family OR persons in other related families" and they have the highest divorce rate of 81%. These people could either have no children or regard them as having no children and if we consider them as no children, the pattern again is consistent with previous findings that children increase marital stability. We can confirm that the first hypothesis is true. 
 
-Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
+When we look at the age of the youngest children in each class of number of children, the divorce rate increases as the children grow older which confirms our second hypothesis. 
+
+```{r}
+plot_number <- fd %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(!is.na(children_class)) %>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Number of children in family')
+
+plotNA <- fd %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% group_by(children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = children_class, y = divorce_rate))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Number of children in family')
+
+plot_age1 <- fd %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class, youngest_child_age) %>% filter(!is.na(children_class)) %>% group_by(youngest_child_age)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = youngest_child_age, y = divorce_rate))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Youngest child age in family')
+
+
+plot_age_number <- fd %>% select(dpcfamuk11, binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class, youngest_child_age) %>% filter(!is.na(children_class)) %>% group_by(children_class, youngest_child_age)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = youngest_child_age, y = divorce_rate))+ geom_col(position = 'dodge') + facet_wrap(~children_class)+ theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Youngest child age in family by number of children')
+
+
+#grid.arrange(plo, plot_age, =2)
 
 ## Dependent Children and Social Grade
 
-```{r}
-family_compo <- fd%>% select(dpcfamuk11, tenure, scgpuk11c, binary_marstat, binary_region_factor) %>% mutate(no_of_children = dpcfamuk11)%>% mutate(children_class = ifelse(dpcfamuk11==1, 'No children', ifelse(dpcfamuk11==2|dpcfamuk11==3|dpcfamuk11==4|dpcfamuk11==5|dpcfamuk11==6|dpcfamuk11==7, 'One child', ifelse(dpcfamuk11==8|dpcfamuk11==9|dpcfamuk11==10|dpcfamuk11==11|dpcfamuk11==12|dpcfamuk11==13, 'Two children', ifelse(dpcfamuk11==14|dpcfamuk11==15|dpcfamuk11==16|dpcfamuk11==17|dpcfamuk11==18|dpcfamuk11==19, 'Three or more children', NA)))))
 
-family_compo %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
+plot_social <- fd %>% select(binary_marstat, tenure, scgpuk11c, binary_region_factor, children_class) %>% filter(scgpuk11c != -9) %>% filter(!is.na(children_class)) %>% group_by(scgpuk11c, children_class)%>% summarise(divorce_rate = mean(binary_marstat))%>%ggplot(aes(x = scgpuk11c, y = divorce_rate, fill = children_class))+ geom_col(position = 'dodge') + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + labs(x = 'Social Class')
+
+#plot_number
+#plot_social
+#plotNA
+grid.arrange(plot_number, plotNA, ncol=2)
+plot_age1
+#grid.arrange(plot_age1, plot_age, ncol = 2)
+```
+
+```{r number_children_ttest}
+t.test(fd$binary_marstat[fd$children_class == '0.No children'], fd$binary_marstat[fd$children_class == "1.One child"])
 ```
 
 
+# Health & Marriage
 
-## Health & Marriage
 ```{r message = FALSE, warning = FALSE, echo = FALSE}
-#This should be made universal and not distinct to any one local machine
 mine <- select(fd, disability, marstat, binary_marstat)
 
-mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
+mine$disability <- factor(mine$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "Not limited") )
 mine$binary_marstat <- factor(mine$binary_marstat, levels = c(0,1), labels = c("married", "divorced"))
-chisq.test(mine$binary_marstat,mine$disability)
+mine2 <- select(fd, disability, marstat, binary_marstat, scgpuk11c)
+mine2 <- mine2[mine2$scgpuk11c != -9,]
+mine2$disability <- factor(mine2$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
+mine2 <- mine2 %>% group_by(disability,scgpuk11c) %>% mutate(divorce_rate = mean(binary_marstat))
+mine2 <- mine2[complete.cases(mine2),]
 
+mine3 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat))
 ```
 
-A chi-square test of the two variables indicate that the correlation between marital status and long-term health problem is significant. This finding suggests that the two variables are not independent of each other. Long-term health problem will influence marital status. 
+Since health is a critical factor for a satisfied life, health can be an important factor to influence marriage. There are three levels of health indicators in this dataset: "Limit a lot", "Limit a little", and "Not limited". Each level represents the degree of daily activities a person is limited to because of his or her long-term illness. The "Not limited" category indicates that a person's day to day activities are not limited at all by the long-term health illness or there is no illness. The percentage of the people falls under the category is 8.5%, 9.4%, and 82.1% for "Limit a Lot", "Limit a little", and "Not limited" respectively. 
 
 ```{r echo = FALSE}
-mine2 <- select(fd, disability, marstat, binary_marstat)
-mine2$disability <- factor(mine2$disability, levels = c(1,2,3), labels = c("Limit a lot", "Limit a little", "not limited") )
-mine2 <- mine2 %>% group_by(disability) %>% summarise(divorce_rate = mean(binary_marstat))
-ggplot(mine, aes(disability, fill =binary_marstat))+geom_bar(position = "fill")
-ggplot(mine2, aes(disability, divorce_rate))+geom_bar(stat = "identity")
+chisq.test(mine$binary_marstat,mine$disability)
 ```
-The graph shows that the less severe the long-term health problem, the less the divorced rate.
+
+First of all, it is important to examine whether the health and marital status are independent of each other. The chi-square test indicates that there is a relationship between the two variables. The degree of the relationship is examined through Exhibit1 below. 
+
+```{r echo = FALSE}
+
+ggplot(mine3, aes(disability, divorce_rate))+geom_bar(stat = "identity")+labs(x = "Health", y = "Divorce Rate")
+```
+
+Exhibit 1 Health and Divorce Rate
+
+Exhibit 1 illustrates how health has an observable impact on divorce rate. The divorce rate for "Not limited" people is 19.53%, which is 16.77% lower than the divorce rate of 36.30% for "Limit a lot" people. However, there is a chance that this model is highly correlated with other variables such as social status and may not be the real drive for this observable impact. It is possible that the people with lower social status is not able to afford healthcare or healthy lifestyle and therefore lead to higher divorce rate.
+
+
+```{r echo = FALSE}
+ggplot(mine2, aes(factor(scgpuk11c), divorce_rate, fill = disability))+geom_bar(stat = "identity", position = "dodge") + labs(x = "Social Grade", y = "Divorce Rate")
+```
+
+Exhibit 2 Controling the Social Grade
+
+To validate this finding, it is important to examine the colinearity between social grade and health. According to Exhibit 2, within each social grade, the impact of disability on health is still very strong and especially strong in the lowest social grade, level 4.Therefore, it can be concluded that the variable health has a real and observable impact on marital status. The more severe the health problem, the higher the divorce rate. 
+
+Furthermore, similar findings are also published elsewhere. A report by Time (http://time.com/83486/divorce-is-more-likely-if-the-wife-not-the-husband-gets-sick/) dicussed that 75% of couples dealing with chronic disease end in divorce. To summarise, health problems indeed significantly influence the divorce rate. 
 
 
 
 # Logistic Regression
+##A comprehensive regression analysis of all correlated variables
 
-A comprehensive regression analysis of all correlated variables
-
-Method
+###Method
 As the dependant variable in question is a dichotomous variable (divorced or not divorced), we chose to build a logistic regression model instead of a linear regression model. Then we selected the variables discussed above as dependent variables. The variables presented thus far in this report are the variables hypothesised to have the greatest effect on a person's liklihood of being divorced in the sample.  Our goal was to use the variables we examined to predict whether a person will be divorced. 
 
 Overall, we experimented with a total of 8 variables to find the best Logistic Regression Model:
@@ -1300,6 +1297,7 @@ testData <- rbind(test_ones, test_zeros)  # row bind the 1's and 0's
 
 
 ```{r message = FALSE, echo = FALSE, results = "hide", warning = FALSE}
+
 library(smbinning)
 library(InformationValue)
 
@@ -1378,8 +1376,6 @@ Nevertheless, our finding is still significant because we identified a few stron
 
 
 
-# Hypothesis Testing and Prediction Model (Helene's)
-
 
 
 # Conclusion
@@ -1390,9 +1386,50 @@ Lacking any information about a particular person, age would be a good first pre
 
 It is evident that social class and education level are amongst the biggest influencing factors of divorce rate as depicted by the strong inverse relationship of these variables with divorce rates. This trend holds true accross all ethnicities and religions, which further suppports the strength of the variables.
 
+
 # References
 
 Main Github Repository: https://github.com/dlouhasha/TheGreatWork
 
-# Appendix
-A list of all variables and descriptions
+Adam Isen, Betsey Stevenson (2010). Women's Education and Family Behavior: Trends in Marriage, Divorce and Fertility. *Nber Working Paper Series*, No.15725. Available from: [DOI: 10.3386/w15725] (Accessed on 11 October 2017)
+
+Alexander Hagelüken, Suddeutsche Zeitung (2014) *Heiraten zementiert soziale Spaltung*, Available from: [http://www.sueddeutsche.de/wirtschaft/partnerwahl-und-ungleichheit-heiraten-zementiert-soziale-spaltung-1.1875581] (Accessed on 12 October 2017)
+
+Anushka Asthana and Denis Campbell, The Guardian (2009) *US study says divorce is linked to age and education*. Available from: [https://www.theguardian.com/lifeandstyle/2009/sep/27/divorce-linked-to-age-education] (Accessed on 11 October 2017)
+
+Becker, Gary S., Elizabeth Landes, and Robert T. Michael (1977) An Economic Analysis of Marital Instability. *Journal of Political Economy*, 85:1141-87. 
+
+Donna Ruane Morrisox and Mary Jo Coiro, Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. Journal of Marriage and the Family 6 1 (August 1999): 626-637
+
+Chloe Pantazi, Thrillist (2015) *Where are the Tinder users trying to get laid the most?*. Available from:[thttps://www.thrillist.com/travel/nation/where-tinder-passport-users-are-swiping-the-most] (Accessed on 12 October 2017)
+
+Donna Ruane Morrisox and Mary Jo Coiro (1999) Parental Conflict and Marital Disruption: Do Children Benefit When High-Conflict Marriages Are Dissolved?. *Journal of Marriage and the Family* 6(1), 626-637
+
+Hlavac, Marek (2015). stargazer: Well-Formatted Regression and Summary Statistics Tables. *R package version 5.2*. Available from:[http://CRAN.R-project.org/package=stargazer] (Accessed on 12 October 2017)
+ 
+Jan D. Andersen (2005) Financial Problems and Divorce - Do Demographic Characteristics Strengthen the Relationship?. *Journal f Divorce & Remarriage*, 43(1-2), 149-161. Available from: doi: 10.1300/J087v43n01_08 (Accessed on 12 October 2017)
+
+John Bingham and Ashley kirk, The Telegraph (2015), *Divorce rate at lowest level in 40 years after cohabitation revolution*. Available from: [http://www.telegraph.co.uk/news/uknews/12011714/Divorce-rate-at-lowest-level-in-40-years-after-cohabitation-revolution.html] (Accessed on 12 October 2017)
+
+NHS Digital (2014) *Statistics on Drugs Misuse: English, 2014* Available from: [http://digital.nhs.uk/catalogue/PUB15943] (Accessed on 11 October 2017)
+
+Office for National Statistics (2015) *Births by parents' characterisitics in England and Wales：2015*. Available from: [https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/livebirths/bulletins/birthsbyparentscharacteristicsinenglandandwales/2015] (Accessed on 12 October 2017)
+
+Office for National Statistics (2015) *Divorces in England and Wales: 2015 - Dissolutions and annulments of marriage by previous marital status, sex, age, fact proven and to whom granted*. Available from: [https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/divorce/bulletins/divorcesinenglandandwales/2015] (Accessed on 12 October 2017) 
+
+Office for National Statistics (2017) *Marriage and divorce on the rise at 65 and over*. Available from: [https://visual.ons.gov.uk/marriage-and-divorce-on-the-rise-at-65-and-over/] (Accessed on 12 October 2017)
+
+Qi Xu, Jianning Yu and Zeqi Qiu (2015) The impact of children on divorce risk. *The Journal of Chinese Sociology*, 2(1). Available from: DOI 10.1186/s40711-015-0003-0 (Accessed on 12 October 2017)
+
+Susan L. Brown and I-Fen Lin (2012). The Gray Divorce Revolution: Rising Divorce Among Middle-Aged and Older Adults, 1990-2010. *The Journals of Gerontology*, 67(6), 731-741. Available from: doi: 10.1093/geronb/gbs089 (Accessed on 12 October 2017)
+
+Thomas E.Trail, Benjamin R. Karney (2012). What's (Not) Wrong With Low-Income Marriages. *Journal of Marriage and Family*, 74(3), 413-427. Available from: DOI: 10.1111/j.1741-3737.2012.00977.x (Accessed on 11 October 2017)
+
+U.K. - Daily Mail (2015) *Wish you weren't here: Top ten divorce hot spots across Britain are all by the sea - with Blackpool the worst place to live if you want a happy marriage*. Available from: [http://www.dailymail.co.uk/news/article-3201497/Wish-weren-t-ten-divorce-hot-spots-Britain-sea-Blackpool-worst-place-live-want-happy-marriage.html]. (Accessed on 11 October 2017)
+
+Waite, Linda J, and Lee A Lillard (1991) Children and marital disruption. *American Journal of Sociology*, 96(4):930–953. 
+
+Wendy Wang, Pew Research Center (2015) *The link between a college education and a lasting marriage*. Available from: [http://www.pewresearch.org/fact-tank/2015/12/04/education-and-marriage/] (Accessed on 12 October 2017) 
+
+
+
